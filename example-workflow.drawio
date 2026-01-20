@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net" modified="2026-01-18T12:00:00.000Z" agent="5.0" version="20.0.0">
+  <diagram name="CRM Integration Workflow" id="workflow-1">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Trigger Node -->
+        <mxCell id="node-1" value="Webhook Trigger" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="100" y="200" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Process Node 1 -->
+        <mxCell id="node-2" value="Parse Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="300" y="200" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- API Node -->
+        <mxCell id="node-3" value="Check Duplicate" style="rhombus;whiteSpace=wrap;html=1;fillColor=#a855f7;strokeColor=#6b21a8;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="500" y="180" width="140" height="120" as="geometry"/>
+        </mxCell>
+        
+        <!-- Process Node 2 -->
+        <mxCell id="node-4" value="Transform Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="720" y="200" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- API Node 2 -->
+        <mxCell id="node-5" value="Create Lead in CRM" style="rhombus;whiteSpace=wrap;html=1;fillColor=#a855f7;strokeColor=#6b21a8;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="920" y="180" width="140" height="120" as="geometry"/>
+        </mxCell>
+        
+        <!-- Notification Node -->
+        <mxCell id="node-6" value="Email Notification" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#22c55e;strokeColor=#15803d;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="200" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Complete Node -->
+        <mxCell id="node-7" value="Complete" style="ellipse;whiteSpace=wrap;html=1;fillColor=#52525b;strokeColor=#27272a;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="200" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections -->
+        <mxCell id="edge-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-1" target="node-2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="edge-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-2" target="node-3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="edge-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-3" target="node-4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="edge-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-4" target="node-5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="edge-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-5" target="node-6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="edge-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ef4444;strokeWidth=2;" edge="1" parent="1" source="node-6" target="node-7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
