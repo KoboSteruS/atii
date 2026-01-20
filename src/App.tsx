@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams, Navigate } from 'react-router';
 import { AppProvider } from './store/AppContext';
 import { Home } from './components/Home';
 import { Templates } from './components/Templates';
@@ -10,6 +10,24 @@ import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
 import logo from './assets/fae284cb14d195ca8a500c6871ab1edb884752c1.png';
 
+// Компонент для проверки JWT токена
+function AdminRoute() {
+  const { token } = useParams<{ token: string }>();
+  
+  // Простая проверка формата JWT (три части через точку)
+  const isValidJWT = (t: string | undefined): boolean => {
+    if (!t) return false;
+    const parts = t.split('.');
+    return parts.length === 3 && parts.every(part => part.length > 0);
+  };
+  
+  if (!isValidJWT(token)) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <AdminPanel />;
+}
+
 function Navigation() {
   const location = useLocation();
   
@@ -17,8 +35,8 @@ function Navigation() {
     return location.pathname === path;
   };
 
-  // Hide navigation on admin page
-  if (location.pathname === '/admin') {
+  // Hide navigation on admin page (проверяем паттерн /token/admin)
+  if (location.pathname.match(/^\/[^/]+\/admin$/)) {
     return null;
   }
 
@@ -61,14 +79,6 @@ function Navigation() {
             >
               О нас
             </Link>
-            
-            {/* Admin Button */}
-            <Link 
-              to="/admin" 
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg hover:shadow-lg hover:shadow-red-500/50 transition-all text-white"
-            >
-              Admin
-            </Link>
           </div>
         </div>
       </div>
@@ -78,7 +88,7 @@ function Navigation() {
 
 function AppContent() {
   const location = useLocation();
-  const isAdminPage = location.pathname === '/admin';
+  const isAdminPage = location.pathname.match(/^\/[^/]+\/admin$/) !== null;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -90,7 +100,7 @@ function AppContent() {
           <Route path="/custom" element={<CustomSolutions />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/about" element={<About />} />
-          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/:token/admin" element={<AdminRoute />} />
         </Routes>
       </main>
       {!isAdminPage && <Footer />}
