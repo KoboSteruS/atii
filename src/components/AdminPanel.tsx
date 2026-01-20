@@ -348,6 +348,33 @@ export function AdminPanel() {
   ];
 
   // Portfolio handlers
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверяем что это изображение
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, выберите файл изображения');
+      return;
+    }
+
+    // Ограничение размера (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setProjectForm({ ...projectForm, screenshot: base64 });
+    };
+    reader.onerror = () => {
+      alert('Ошибка при чтении файла');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveProject = () => {
     if (editingProject) {
       updateWebsite(editingProject, projectForm);
@@ -2012,16 +2039,45 @@ export function AdminPanel() {
               <div>
                 <label className="text-sm text-zinc-400 mb-2 block flex items-center gap-2">
                   <Image size={16} />
-                  URL скриншота сайта
+                  Скриншот сайта
                 </label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  value={projectForm.screenshot || ''}
-                  onChange={(e) => setProjectForm({ ...projectForm, screenshot: e.target.value })}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:border-red-500 focus:outline-none"
-                />
-                <p className="text-xs text-zinc-600 mt-1">Или используйте Unsplash для поиска изображений</p>
+                
+                {/* Превью изображения */}
+                {projectForm.screenshot && (
+                  <div className="mb-3">
+                    <img 
+                      src={projectForm.screenshot} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-lg border border-zinc-700"
+                    />
+                  </div>
+                )}
+
+                {/* Кнопка загрузки файла */}
+                <label className="block mb-2">
+                  <div className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-red-500 cursor-pointer transition-all text-center text-white">
+                    <Upload size={20} className="inline-block mr-2" />
+                    {projectForm.screenshot ? 'Изменить изображение' : 'Загрузить изображение'}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Или ввести URL */}
+                <div className="mt-3">
+                  <p className="text-xs text-zinc-500 mb-2">Или введите URL изображения:</p>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/photo-..."
+                    value={projectForm.screenshot?.startsWith('http') ? projectForm.screenshot : ''}
+                    onChange={(e) => setProjectForm({ ...projectForm, screenshot: e.target.value })}
+                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-red-500 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>
