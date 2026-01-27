@@ -382,14 +382,14 @@ export function Portfolio() {
               <span className="text-yellow-500"> await</span> createWebsite();
             </p>
             <div className="flex gap-4 justify-center">
-              <motion.a
+              {/* <motion.a
                 href="/templates"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-3 bg-zinc-900 border border-zinc-700 rounded-lg hover:border-red-500/50 transition-all font-mono"
               >
                 Готовые решения
-              </motion.a>
+              </motion.a> Временно скрыто */}
               <motion.a
                 href="/custom"
                 whileHover={{ scale: 1.05 }}

@@ -5,7 +5,7 @@ import {
   Edit, Eye, Code, Layers, Globe, Image, Type, Palette, Users, BarChart,
   ArrowLeft, ArrowRight, Check, X, Copy, Download, Upload, Zap, Database, Mail,
   MessageSquare, Webhook, Target, ChevronRight, GripVertical, Search,
-  Briefcase, ExternalLink, Calendar, Tag, Sparkles, AlertCircle, Award
+  Briefcase, ExternalLink, Calendar, Tag, Sparkles, AlertCircle, Award, RefreshCw
 } from 'lucide-react';
 import { useApp, Website, Template, PageContent, WorkflowStep } from '../store/AppContext';
 import { SchemaEditor } from './SchemaEditor';
@@ -37,6 +37,28 @@ export function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [portfolioFilter, setPortfolioFilter] = useState('all');
   const [templateFilter, setTemplateFilter] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Функция принудительного обновления данных (очистка кеша)
+  const refreshDataFromServer = () => {
+    if (!confirm('Очистить локальный кеш и перезагрузить страницу? Это загрузит дефолтные данные или данные из импортированного файла.')) {
+      return;
+    }
+    
+    setIsRefreshing(true);
+    
+    // Очищаем все данные из localStorage
+    localStorage.removeItem('atii_websites');
+    localStorage.removeItem('atii_templates');
+    localStorage.removeItem('atii_pages');
+    localStorage.removeItem('atii_settings');
+    localStorage.removeItem('atii_workflow_schemas');
+    
+    // Перезагружаем страницу для загрузки дефолтных данных
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
   
   // Export/Import functions
   const exportData = () => {
@@ -2504,6 +2526,16 @@ export function AdminPanel() {
                     className="pl-10 pr-4 py-2 w-64 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white focus:border-red-500 focus:outline-none"
                   />
                 </div>
+                
+                <button
+                  onClick={refreshDataFromServer}
+                  disabled={isRefreshing}
+                  className="px-4 py-2 bg-red-600/20 border border-red-600/50 rounded-lg hover:bg-red-600/30 hover:border-red-600 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Обновить данные с сервера"
+                >
+                  <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
+                  {isRefreshing ? 'Обновление...' : 'Обновить'}
+                </button>
                 
                 <button
                   onClick={exportData}

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Sparkles, CheckCircle, ArrowRight, Users, Target, Rocket, Code, Layers, Zap, LineChart, Shield, Globe, Terminal, FileCode, GitBranch } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Sparkles, CheckCircle, ArrowRight, Users, Target, Rocket, Code, Layers, Zap, LineChart, Shield, Globe, Terminal, FileCode, GitBranch, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../store/AppContext';
 import { 
   TerminalCard, 
@@ -36,6 +37,7 @@ export function CustomSolutions() {
 
   const [submitted, setSubmitted] = useState(false);
   const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
   // Статичные шаги процесса разработки
   const workflowSteps = [
@@ -146,7 +148,59 @@ export function CustomSolutions() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    // Закрываем модальное окно через 3 секунды после успешной отправки
+    setTimeout(() => {
+      setIsFormModalOpen(false);
+      // Сбрасываем форму через еще 1 секунду
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          description: '',
+          budget: ''
+        });
+      }, 1000);
+    }, 3000);
   };
+
+  const handleModalClose = (open: boolean) => {
+    setIsFormModalOpen(open);
+    if (!open) {
+      // Сбрасываем форму при закрытии модального окна
+      setSubmitted(false);
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        description: '',
+        budget: ''
+      });
+    }
+  };
+
+  // Блокировка скролла при открытии модального окна
+  useEffect(() => {
+    if (isFormModalOpen) {
+      // Сохраняем текущую позицию скролла
+      const scrollY = window.scrollY;
+      // Блокируем скролл
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Восстанавливаем скролл при закрытии
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isFormModalOpen]);
 
   const getCustomIcon = (iconName: string, size: number = 24) => {
     const iconMap: Record<string, React.ReactNode> = {
@@ -243,7 +297,7 @@ export function CustomSolutions() {
         }}
       />
       
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 max-[450px]:px-4 relative z-10 w-full box-border">
         {/* Hero */}
         <motion.div 
           className="text-center mb-20"
@@ -313,21 +367,21 @@ export function CustomSolutions() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.2 }}
-                  className={`flex items-center gap-8 ${idx % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'}`}
+                  className={`flex items-center gap-8 max-[450px]:gap-4 ${idx % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'}`}
                 >
                   {/* Content */}
                   <motion.div
-                    className="flex-1"
+                    className="flex-1 min-w-0 w-full"
                     whileHover={{ scale: 1.02, x: idx % 2 === 0 ? 10 : -10 }}
                     onHoverStart={() => setActiveStep(stepId)}
                     onHoverEnd={() => setActiveStep(null)}
                   >
-                    <div className={`p-8 bg-zinc-900/50 border-2 rounded-2xl backdrop-blur-sm transition-all ${
+                    <div className={`p-8 max-[450px]:p-4 bg-zinc-900/50 border-2 rounded-2xl backdrop-blur-sm transition-all ${
                       activeStep === stepId ? 'border-red-500 bg-red-900/20' : 'border-zinc-800'
                     }`}>
-                      <div className="flex items-start gap-6">
+                      <div className="flex items-start gap-6 max-[450px]:gap-4">
                         <motion.div
-                          className={`w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+                          className={`w-16 h-16 max-[450px]:w-12 max-[450px]:h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${
                             activeStep === stepId
                               ? 'bg-gradient-to-br from-red-600 to-pink-600 shadow-red-500/50'
                               : 'bg-gradient-to-br from-zinc-700 to-zinc-800'
@@ -337,30 +391,30 @@ export function CustomSolutions() {
                           {getCustomIcon((step as any).icon || 'code', 32)}
                         </motion.div>
 
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h3 className={`text-2xl transition-colors ${
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 max-[450px]:gap-2 mb-3 max-[450px]:mb-2 flex-wrap">
+                            <h3 className={`text-2xl max-[450px]:text-lg transition-colors break-words ${
                               activeStep === stepId ? 'text-red-400' : 'text-white'
                             }`}>
                               {(step as any).title || step.title}
                             </h3>
-                            <span className="px-3 py-1 bg-red-600/20 text-red-400 rounded-full text-sm">
+                            <span className="px-3 max-[450px]:px-2 py-1 max-[450px]:py-0.5 bg-red-600/20 text-red-400 rounded-full text-sm max-[450px]:text-xs whitespace-nowrap flex-shrink-0">
                               {(step as any).duration || step.duration}
                             </span>
                           </div>
-                          <p className="text-zinc-400 mb-4">{(step as any).description || step.description}</p>
+                          <p className="text-zinc-400 mb-4 max-[450px]:mb-3 max-[450px]:text-sm break-words">{(step as any).description || step.description}</p>
 
-                          <div className="grid md:grid-cols-3 gap-3">
+                          <div className="grid md:grid-cols-3 gap-3 max-[450px]:gap-2">
                             {((step as any).details || step.details || []).map((detail: string, i: number) => (
                               <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 transition={{ delay: idx * 0.2 + i * 0.1 }}
-                                className="flex items-center gap-2 text-sm text-zinc-500"
+                                className="flex items-center gap-2 text-sm max-[450px]:text-xs text-zinc-500 break-words"
                               >
-                                <CheckCircle size={16} className="text-red-500 flex-shrink-0" />
-                                {detail}
+                                <CheckCircle size={16} className="text-red-500 flex-shrink-0 max-[450px]:w-3 max-[450px]:h-3" />
+                                <span className="break-words">{detail}</span>
                               </motion.div>
                             ))}
                           </div>
@@ -398,7 +452,7 @@ export function CustomSolutions() {
             Что вы <span className="text-red-500">получаете</span>
           </h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-[450px]:gap-4">
             {advantages.map((advantage: any, idx: number) => (
               <motion.div
                 key={(advantage as any).id || idx}
@@ -407,7 +461,7 @@ export function CustomSolutions() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 whileHover={{ y: -5, rotate: idx % 2 === 0 ? 1 : -1 }}
-                className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-red-500/50 transition-all backdrop-blur-sm"
+                className="p-6 max-[450px]:p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-red-500/50 transition-all backdrop-blur-sm w-full box-border"
               >
                 <motion.div
                   className="w-12 h-12 bg-gradient-to-br from-red-600 to-pink-600 rounded-lg flex items-center justify-center mb-4 shadow-lg"
@@ -415,8 +469,8 @@ export function CustomSolutions() {
                 >
                   {getCustomIcon((advantage as any).icon || 'layers', 24)}
                 </motion.div>
-                <h3 className="text-xl mb-2">{(advantage as any).title || advantage.title}</h3>
-                <p className="text-zinc-400">{(advantage as any).description || advantage.description}</p>
+                <h3 className="text-xl max-[450px]:text-lg mb-2 break-words">{(advantage as any).title || advantage.title}</h3>
+                <p className="text-zinc-400 max-[450px]:text-sm break-words">{(advantage as any).description || advantage.description}</p>
               </motion.div>
             ))}
           </div>
@@ -433,7 +487,7 @@ export function CustomSolutions() {
             Примеры <span className="text-red-500">реализованных проектов</span>
           </h2>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8 max-[450px]:gap-4">
             {caseStudies.map((study: any, idx: number) => (
               <motion.div
                 key={(study as any).id || idx}
@@ -442,12 +496,12 @@ export function CustomSolutions() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.15 }}
                 whileHover={{ y: -10, rotate: idx % 2 === 0 ? -1 : 1 }}
-                className="group p-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 border border-zinc-800 rounded-2xl hover:border-red-500/50 transition-all backdrop-blur-sm"
+                className="group p-8 max-[450px]:p-4 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 border border-zinc-800 rounded-2xl hover:border-red-500/50 transition-all backdrop-blur-sm w-full box-border"
               >
-                <h3 className="text-2xl mb-4 group-hover:text-red-400 transition-colors">
+                <h3 className="text-2xl max-[450px]:text-lg mb-4 group-hover:text-red-400 transition-colors break-words">
                   {(study as any).title || study.title}
                 </h3>
-                <p className="text-zinc-300 mb-6">{(study as any).description || study.description}</p>
+                <p className="text-zinc-300 mb-6 max-[450px]:text-sm break-words">{(study as any).description || study.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {((study as any).tech || study.tech || []).map((tech: string, i: number) => (
                     <span key={i} className="px-3 py-1 bg-zinc-800 text-zinc-400 rounded text-xs">
@@ -632,21 +686,82 @@ export function CustomSolutions() {
           </motion.div>
         </motion.div>
 
-        {/* Contact Form */}
+        {/* CTA Section - Кнопка для открытия формы */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
+          className="max-w-4xl mx-auto text-center"
         >
-          <div className="p-10 bg-zinc-900/50 border-2 border-zinc-800 rounded-3xl backdrop-blur-sm">
-            {!submitted ? (
-              <>
-                <h2 className="text-3xl mb-6 text-center">Расскажите о вашем проекте</h2>
-                <p className="text-zinc-400 mb-8 text-center">
-                  Заполните форму, и мы свяжемся с вами для обсуждения деталей
-                </p>
+          <div className="p-10 max-[450px]:p-6 bg-zinc-900/50 border-2 border-zinc-800 rounded-3xl backdrop-blur-sm">
+            <h2 className="text-3xl max-[450px]:text-2xl mb-4">Готовы начать проект?</h2>
+            <p className="text-zinc-400 mb-8 max-[450px]:text-sm">
+              Расскажите о вашем проекте, и мы свяжемся с вами для обсуждения деталей
+            </p>
+            <motion.button
+              onClick={() => setIsFormModalOpen(true)}
+              className="px-8 max-[450px]:px-6 py-4 max-[450px]:py-3 bg-red-600 hover:bg-red-700 transition-colors rounded-lg flex items-center justify-center gap-2 text-lg max-[450px]:text-base mx-auto"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Оставить заявку
+              <ArrowRight size={20} />
+            </motion.button>
+          </div>
 
+          {/* Pricing Note */}
+          <div className="mt-6 p-6 bg-red-950/20 border border-red-900/30 rounded-xl">
+            <h4 className="text-lg mb-2 text-red-400">О стоимости</h4>
+            <p className="text-zinc-400 text-sm">
+              Цена на кастомные решения зависит от сложности задачи и требований. 
+              В среднем, стоимость в 2 раза выше готовых шаблонов, но вы получаете 
+              полностью индивидуальное решение, идеально подходящее для вашего бизнеса.
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Модальное окно с формой - рендерится через Portal в body */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isFormModalOpen && (
+            <>
+              {/* Оверлей */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => handleModalClose(false)}
+                className="fixed inset-0 z-[99998] bg-black/80 backdrop-blur-sm"
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              
+              {/* Модальное окно */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl p-6 mx-4"
+                style={{ position: 'fixed' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+              {/* Заголовок */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl text-white mb-2">Расскажите о вашем проекте</h2>
+                  <p className="text-zinc-400 text-sm">
+                    Заполните форму, и мы свяжемся с вами для обсуждения деталей
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleModalClose(false)}
+                  className="text-zinc-400 hover:text-white transition-colors p-2"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              {!submitted ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
@@ -654,7 +769,7 @@ export function CustomSolutions() {
                       <input
                         type="text"
                         required
-                        className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-white"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
@@ -665,7 +780,7 @@ export function CustomSolutions() {
                       <input
                         type="email"
                         required
-                        className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-white"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
@@ -676,7 +791,7 @@ export function CustomSolutions() {
                     <label className="block text-sm mb-2 text-zinc-300">Компания</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-white"
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     />
@@ -687,7 +802,7 @@ export function CustomSolutions() {
                     <textarea
                       required
                       rows={5}
-                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors resize-none text-white"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       placeholder="Расскажите подробнее о вашем проекте и требованиях"
@@ -697,7 +812,7 @@ export function CustomSolutions() {
                   <div>
                     <label className="block text-sm mb-2 text-zinc-300">Планируемый бюджет</label>
                     <select
-                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                      className="w-full px-4 py-3 bg-black/50 border border-zinc-700 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-white"
                       value={formData.budget}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                     >
@@ -719,45 +834,31 @@ export function CustomSolutions() {
                     <ArrowRight size={20} />
                   </motion.button>
                 </form>
-              </>
-            ) : (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-center py-12"
-              >
+              ) : (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2 }}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-center py-8"
                 >
-                  <CheckCircle size={64} className="text-green-500 mx-auto mb-6" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <CheckCircle size={64} className="text-green-500 mx-auto mb-6" />
+                  </motion.div>
+                  <h3 className="text-2xl mb-4 text-white">Заявка отправлена!</h3>
+                  <p className="text-zinc-400 mb-8">
+                    Мы свяжемся с вами в ближайшее время для обсуждения деталей проекта.
+                  </p>
                 </motion.div>
-                <h3 className="text-2xl mb-4">Заявка отправлена!</h3>
-                <p className="text-zinc-400 mb-8">
-                  Мы свяжемся с вами в ближайшее время для обсуждения деталей проекта.
-                </p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-lg"
-                >
-                  Отправить еще одну заявку
-                </button>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Pricing Note */}
-          <div className="mt-6 p-6 bg-red-950/20 border border-red-900/30 rounded-xl">
-            <h4 className="text-lg mb-2 text-red-400">О стоимости</h4>
-            <p className="text-zinc-400 text-sm">
-              Цена на кастомные решения зависит от сложности задачи и требований. 
-              В среднем, стоимость в 2 раза выше готовых шаблонов, но вы получаете 
-              полностью индивидуальное решение, идеально подходящее для вашего бизнеса.
-            </p>
-          </div>
-        </motion.div>
-      </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }

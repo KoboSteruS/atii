@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams, Navigate } from 'react-router';
+import { Menu, X } from 'lucide-react';
 import { AppProvider } from './store/AppContext';
 import { Home } from './components/Home';
 import { Templates } from './components/Templates';
@@ -30,60 +31,122 @@ function AdminRoute() {
 
 function Navigation() {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
+  // Определяем размер экрана
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 450);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Hide navigation on admin page (проверяем паттерн /token/admin)
   if (location.pathname.match(/^\/[^/]+\/admin$/)) {
     return null;
   }
 
+  // Закрываем мобильное меню при смене роута
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const navLinks = [
+    { path: '/', label: 'Главная' },
+    // { path: '/templates', label: 'Готовые решения' }, // Временно скрыто
+    { path: '/custom', label: 'Под ключ' },
+    { path: '/portfolio', label: 'Портфолио' },
+    { path: '/about', label: 'О нас' },
+  ];
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="max-w-7xl mx-auto px-6 py-4 relative">
         <div className="flex items-center justify-between">
+          {/* Логотип */}
           <Link to="/" className="flex items-center">
             <img src={logo} alt="АТИИ" className="h-12" />
           </Link>
           
-          <div className="flex items-center gap-8">
-            <Link 
-              to="/" 
-              className={`transition-colors ${isActive('/') ? 'text-red-500' : 'text-white hover:text-red-500'}`}
+          {/* Десктопное меню - показывается только на больших экранах (>450px) */}
+          {!isMobile && (
+            <div className="flex items-center gap-8">
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.path}
+                  to={link.path} 
+                  className={`transition-colors ${isActive(link.path) ? 'text-red-500' : 'text-white hover:text-red-500'}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Бургер-кнопка - показывается только на мобилке (≤450px) */}
+          {isMobile && (
+            <button
+              onClick={toggleMobileMenu}
+              className="flex items-center justify-center w-10 h-10 text-white hover:text-red-500 transition-colors"
+              aria-label={isMobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
             >
-              Главная
-            </Link>
-            <Link 
-              to="/templates" 
-              className={`transition-colors ${isActive('/templates') ? 'text-red-500' : 'text-white hover:text-red-500'}`}
-            >
-              Готовые решения
-            </Link>
-            <Link 
-              to="/custom" 
-              className={`transition-colors ${isActive('/custom') ? 'text-red-500' : 'text-white hover:text-red-500'}`}
-            >
-              Под ключ
-            </Link>
-            <Link 
-              to="/portfolio" 
-              className={`transition-colors ${isActive('/portfolio') ? 'text-red-500' : 'text-white hover:text-red-500'}`}
-            >
-              Портфолио
-            </Link>
-            <Link 
-              to="/about" 
-              className={`transition-colors ${isActive('/about') ? 'text-red-500' : 'text-white hover:text-red-500'}`}
-            >
-              О нас
-            </Link>
-          </div>
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
         </div>
+
+        {/* Мобильное выпадающее меню - простое, под навигацией */}
+        {isMobile && isMobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 mt-0 bg-black border-b border-zinc-800 shadow-xl">
+            <div className="flex flex-col py-4 px-6 space-y-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`py-3 px-4 rounded-lg transition-colors text-base ${
+                    isActive(link.path)
+                      ? 'text-red-500 bg-red-500/10 border border-red-500/30'
+                      : 'text-white hover:text-red-500 hover:bg-zinc-900'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
+}
+
+// Компонент для автоматического скролла наверх при смене роута
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, [location.pathname]);
+
+  return null;
 }
 
 function AppContent() {
@@ -92,11 +155,13 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      <ScrollToTop />
       <Navigation />
       <main className={isAdminPage ? '' : 'pt-20 flex-1'}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/templates" element={<Templates />} />
+          {/* <Route path="/templates" element={<Templates />} /> Временно скрыто */}
+          <Route path="/templates" element={<Navigate to="/" replace />} />
           <Route path="/custom" element={<CustomSolutions />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/about" element={<About />} />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { ArrowRight, Code, Zap, Shield, MessageSquare, Mail, Database, TrendingUp, Cpu, Boxes, Workflow, Sparkles, CheckCircle, Clock, Users } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -38,6 +38,19 @@ export function Home() {
   const homePage = pages.find(p => p.id === 'home');
   const content = homePage?.content || {};
   const heroContent = content.hero || {};
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Определяем размер экрана
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 450);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Используем данные из Context, если они есть, иначе используем дефолтные значения
   const defaultFeatures = [
@@ -226,11 +239,13 @@ export function Home() {
         ))}
         
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          {/* Десктопная версия - скрыта на мобилке (≤450px) */}
+          {!isMobile && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
             {heroContent.badge && (
               <motion.div 
                 className="inline-flex items-center gap-2 px-5 py-2 bg-red-600/10 border border-red-500/30 rounded-full mb-8 backdrop-blur-sm"
@@ -270,8 +285,9 @@ export function Home() {
               {heroContent.description || 'IT-компания, которая помогает решать проблемы через современные технологии. Мы можем разработать почти всё что угодно.'}
             </p>
           </motion.div>
+          )}
           
-          {(heroContent.ctaText || heroContent.ctaLink) && (
+          {!isMobile && (heroContent.ctaText || heroContent.ctaLink) && (
             <motion.div 
               className="flex gap-4 justify-center flex-wrap"
               initial={{ opacity: 0, y: 20 }}
@@ -285,12 +301,84 @@ export function Home() {
                 <span className="relative z-10 text-white font-medium">{heroContent.ctaText || 'Начать проект'}</span>
                 <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform text-white" size={20} />
               </Link>
-              <Link 
+              {/* <Link 
                 to="/templates" 
                 className="px-8 py-4 bg-transparent hover:bg-zinc-900 transition-all rounded-lg border-2 border-zinc-700 hover:border-red-500/50 backdrop-blur-sm"
               >
                 <span className="font-medium">Готовые решения</span>
+              </Link> Временно скрыто */}
+            </motion.div>
+          )}
+
+          {/* Мобильная версия - скрыта на десктопе (>450px) */}
+          {isMobile && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="px-4 w-full box-border"
+            >
+            {heroContent.badge && (
+              <motion.div 
+                className="inline-flex items-center gap-2 px-3 py-2 bg-red-600/10 border border-red-500/30 rounded-full mb-4 backdrop-blur-sm"
+                animate={{
+                  boxShadow: [
+                    '0 0 20px rgba(239, 68, 68, 0.2)',
+                    '0 0 35px rgba(239, 68, 68, 0.4)',
+                    '0 0 20px rgba(239, 68, 68, 0.2)',
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <Sparkles size={12} className="text-red-500" />
+                <span className="text-red-400 text-xs">{heroContent.badge}</span>
+              </motion.div>
+            )}
+
+            <h1 className="text-4xl lg:text-5xl mb-6 tracking-tight break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
+              {heroContent.title?.split('\n')[0] || 'Информационные решения'}
+              {heroContent.subtitle || heroContent.title?.split('\n')[1] ? (
+                <>
+                  <br />
+                  <span className="text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                    {heroContent.subtitle || heroContent.title?.split('\n')[1]}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <br />
+                  <span className="text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                    для вашего бизнеса
+                  </span>
+                </>
+              )}
+            </h1>
+            <p className="text-base text-zinc-400 mb-6 mx-auto leading-relaxed break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+              {heroContent.description || 'IT-компания, которая помогает решать проблемы через современные технологии. Мы можем разработать почти всё что угодно.'}
+            </p>
+          </motion.div>
+          )}
+          
+          {isMobile && (heroContent.ctaText || heroContent.ctaLink) && (
+            <motion.div 
+              className="flex flex-col gap-2 justify-center flex-wrap px-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <Link 
+                to={heroContent.ctaLink || '/custom'} 
+                className="group relative px-4 w-full justify-center py-3 bg-red-600 hover:bg-red-700 transition-all rounded-lg flex items-center gap-2 overflow-hidden shadow-lg shadow-red-900/50 text-sm"
+              >
+                <span className="relative z-10 text-white font-medium">{heroContent.ctaText || 'Начать проект'}</span>
+                <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform text-white" size={16} />
               </Link>
+              {/* <Link 
+                to="/templates" 
+                className="px-4 w-full justify-center py-3 bg-transparent hover:bg-zinc-900 transition-all rounded-lg border-2 border-zinc-700 hover:border-red-500/50 backdrop-blur-sm text-sm flex items-center"
+              >
+                <span className="font-medium">Готовые решения</span>
+              </Link> Временно скрыто */}
             </motion.div>
           )}
         </div>
@@ -389,7 +477,7 @@ export function Home() {
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
               >
                 <Link
-                  to={(feature as any).link || feature.link || '/templates'}
+                  to={(feature as any).link === '/templates' ? '/custom' : ((feature as any).link || feature.link || '/custom')}
                   className="block group relative p-8 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:border-red-500/50 transition-all backdrop-blur-sm h-full"
                 >
                   {/* Gradient overlay on hover */}
@@ -700,8 +788,8 @@ export function Home() {
         </div>
       </section>
 
-      {/* Solutions Preview */}
-      <section className="relative py-24 overflow-hidden">
+      {/* Solutions Preview - Временно скрыто */}
+      {/* <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950/30 to-black" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -767,7 +855,7 @@ export function Home() {
             </Link>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section with 3D Background */}
       <section className="relative py-24 overflow-hidden">

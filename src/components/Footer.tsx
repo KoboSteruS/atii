@@ -54,11 +54,11 @@ export function Footer() {
                   Главная
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/templates" className="text-zinc-400 hover:text-red-500 transition-colors">
                   Готовые решения
                 </Link>
-              </li>
+              </li> Временно скрыто */}
               <li>
                 <Link to="/custom" className="text-zinc-400 hover:text-red-500 transition-colors">
                   Под ключ
