@@ -50,17 +50,9 @@ export function AdminPanel() {
           return import.meta.env.VITE_API_URL;
         }
         if (import.meta.env.PROD) {
+          // Используем IP сервера для API запросов
           const protocol = window.location.protocol;
-          const hostname = window.location.hostname;
-          const port = window.location.port;
-          
-          // Если есть порт в URL - API на порту 3001
-          if (port && port !== '80' && port !== '443') {
-            return `${protocol}//${hostname}:3001`;
-          }
-          
-          // Если нет порта - используем тот же домен/IP (Nginx проксирует)
-          return `${protocol}//${hostname}`;
+          return `${protocol}//193.124.114.86`;
         }
         return 'http://localhost:3001';
       };
@@ -84,6 +76,16 @@ export function AdminPanel() {
         throw new Error('Сервер недоступен');
       }
     } catch (error) {
+      const getApiUrl = () => {
+        if (import.meta.env.VITE_API_URL) {
+          return import.meta.env.VITE_API_URL;
+        }
+        if (import.meta.env.PROD) {
+          const protocol = window.location.protocol;
+          return `${protocol}//193.124.114.86`;
+        }
+        return 'http://localhost:3001';
+      };
       const apiUrl = getApiUrl();
       alert(`Сервер недоступен. Убедитесь, что сервер запущен на ${apiUrl}`);
       console.error('Ошибка обновления данных:', error);

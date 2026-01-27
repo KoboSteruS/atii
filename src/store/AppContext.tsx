@@ -662,28 +662,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isInternalUpdateRef = React.useRef(false);
   const isServerUpdateRef = React.useRef(false);
 
-  // URL сервера - автоматически определяется на основе текущего домена
+  // URL сервера - используем IP 193.124.114.86 для production
   const getApiUrl = () => {
     // Если задан в .env - используем его (приоритет)
     if (import.meta.env.VITE_API_URL) {
       return import.meta.env.VITE_API_URL;
     }
     
-    // В production используем тот же домен/IP, что и фронтенд
+    // В production используем IP сервера
     if (import.meta.env.PROD) {
+      // Используем IP сервера для API запросов
+      // Протокол определяем на основе текущего протокола
       const protocol = window.location.protocol;
-      const hostname = window.location.hostname;
-      const port = window.location.port;
-      
-      // Если есть порт в URL (например, tech.at-ii.ru:8080) - API на порту 3001
-      if (port && port !== '80' && port !== '443') {
-        return `${protocol}//${hostname}:3001`;
-      }
-      
-      // Если нет порта или стандартные порты (80/443) - используем тот же домен/IP
-      // Nginx будет проксировать запросы к localhost:3001
-      // Используем относительный путь или тот же домен
-      return `${protocol}//${hostname}`;
+      return `${protocol}//193.124.114.86`;
     }
     
     // В development используем localhost
