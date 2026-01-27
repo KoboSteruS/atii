@@ -53,10 +53,14 @@ export function AdminPanel() {
           const protocol = window.location.protocol;
           const hostname = window.location.hostname;
           const port = window.location.port;
+          
+          // Если есть порт в URL - API на порту 3001
           if (port && port !== '80' && port !== '443') {
             return `${protocol}//${hostname}:3001`;
           }
-          return ''; // Относительный путь - Nginx проксирует
+          
+          // Если нет порта - используем тот же домен/IP (Nginx проксирует)
+          return `${protocol}//${hostname}`;
         }
         return 'http://localhost:3001';
       };

@@ -1,160 +1,122 @@
-# 🔧 Настройка Nginx для tech.at-ii.ru
+# 🔧 Настройка Nginx для ATII на IP 193.124.114.86
 
-## Быстрая настройка
+## Быстрая установка
 
-### 1. Создать конфигурацию Nginx:
+### 1. Скопировать конфигурацию на сервер:
 
+**На твоей машине:**
 ```bash
-sudo nano /etc/nginx/sites-available/atii
+scp nginx-atii.conf root@193.124.114.86:/tmp/
 ```
 
-Вставить следующее:
-
-```nginx
-server {
-    listen 80;
-    listen [::]:80;
-    server_name tech.at-ii.ru;
-
-    # API запросы проксируем на Node.js сервер
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Все остальные запросы (SPA) тоже проксируем на Node.js
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-### 2. Активировать конфигурацию:
-
+**На сервере:**
 ```bash
-# Создать симлинк
-sudo ln -s /etc/nginx/sites-available/atii /etc/nginx/sites-enabled/
+# Скопировать конфиг в sites-available
+sudo cp /tmp/nginx-atii.conf /etc/nginx/sites-available/atii-ip
 
-# Удалить дефолтную конфигурацию (если мешает)
-sudo rm /etc/nginx/sites-enabled/default
+# Создать симлинк для активации
+sudo ln -s /etc/nginx/sites-available/atii-ip /etc/nginx/sites-enabled/atii-ip
 
 # Проверить конфигурацию
 sudo nginx -t
 
-# Перезагрузить Nginx
+# Если всё ок - перезагрузить Nginx
 sudo systemctl reload nginx
 ```
 
-### 3. Проверить работу:
+---
+
+## Что делает конфигурация
+
+1. **Слушает на IP 193.124.114.86:80** (HTTP)
+2. **Проксирует все запросы** к Node.js серверу на `localhost:3001`
+3. **API запросы** (`/api/*`) тоже проксируются к серверу
+4. **SPA роутинг** - все запросы идут к Node.js, который отдаёт `index.html`
+
+---
+
+## Проверка работы
+
+### 1. Проверить статус Nginx:
+```bash
+sudo systemctl status nginx
+```
+
+### 2. Проверить логи:
+```bash
+# Логи доступа
+sudo tail -f /var/log/nginx/atii-ip-access.log
+
+# Логи ошибок
+sudo tail -f /var/log/nginx/atii-ip-error.log
+```
+
+### 3. Проверить доступность:
+```bash
+# С сервера
+curl http://193.124.114.86/api/data
+
+# Должен вернуть JSON с данными
+```
+
+### 4. Проверить в браузере:
+- Открой: `http://193.124.114.86`
+- Должен открыться сайт
+- API запросы должны идти на `http://193.124.114.86/api/data` (без порта!)
+
+---
+
+## Настройка HTTPS (опционально)
+
+Если нужен HTTPS для IP:
 
 ```bash
-# Проверить статус Nginx
-sudo systemctl status nginx
+# Установить Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Получить сертификат (нужен домен, для IP не работает)
+# Или использовать самоподписанный сертификат
+```
+
+---
+
+## Troubleshooting
+
+### Nginx не запускается:
+```bash
+# Проверить синтаксис
+sudo nginx -t
 
 # Проверить логи
-sudo tail -f /var/log/nginx/error.log
-
-# Проверить доступность
-curl http://tech.at-ii.ru/api/data
+sudo journalctl -u nginx -n 50
 ```
 
----
+### 502 Bad Gateway:
+- Проверь, что Node.js сервер запущен: `sudo systemctl status atii-sync`
+- Проверь, что сервер слушает на localhost:3001: `sudo netstat -tlnp | grep 3001`
 
-## Альтернатива: Использовать IP напрямую
-
-Если не хочешь настраивать Nginx, можно использовать IP сервера напрямую.
-
-### На локальной машине перед сборкой:
-
-Создай файл `.env.production`:
-```env
-VITE_API_URL=http://193.124.114.86:3001
-```
-
-Или для HTTPS (если настроен):
-```env
-VITE_API_URL=https://193.124.114.86:3001
-```
-
-Затем собери проект:
+### Порт 80 занят:
 ```bash
-npm run build
-```
+# Проверить, что занимает порт
+sudo lsof -i :80
 
-И загрузи на сервер.
+# Если нужно - остановить другой сервис
+```
 
 ---
 
-## Проверка после настройки
+## Важно!
 
-1. Открой `http://tech.at-ii.ru` в браузере
-2. Открой консоль (F12) → Network
-3. Проверь запросы к `/api/data` - должны идти на `tech.at-ii.ru/api/data` (без порта)
-4. Если всё работает - готово! 🎉
+После настройки Nginx:
+1. **Фронтенд будет обращаться к API через Nginx** (без порта 3001)
+2. **Все запросы идут через порт 80** (или 443 для HTTPS)
+3. **Nginx проксирует их к localhost:3001**
+
+Это значит, что:
+- ✅ Нет проблем с CORS
+- ✅ Нет проблем с портами
+- ✅ Всё работает через стандартные порты
 
 ---
 
-## Если есть HTTPS
-
-Если у тебя настроен SSL сертификат, добавь блок для HTTPS:
-
-```nginx
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name tech.at-ii.ru;
-
-    ssl_certificate /etc/letsencrypt/live/tech.at-ii.ru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/tech.at-ii.ru/privkey.pem;
-
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-И добавь редирект с HTTP на HTTPS:
-
-```nginx
-server {
-    listen 80;
-    listen [::]:80;
-    server_name tech.at-ii.ru;
-    return 301 https://$server_name$request_uri;
-}
-```
+Готово! Теперь сайт доступен по `http://193.124.114.86` 🎉
