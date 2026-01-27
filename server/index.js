@@ -30,17 +30,33 @@ if (STATIC_EXISTS) {
 // Создаем файл с дефолтными данными, если его нет
 async function ensureDataFile() {
   try {
-    await fs.access(DATA_FILE);
-  } catch {
-    // Файл не существует, создаем пустой объект
-    await fs.writeFile(DATA_FILE, JSON.stringify({
-      websites: [],
-      templates: [],
-      pages: [],
-      settings: {},
-      workflowSchemas: {}
-    }, null, 2));
-    console.log('Создан файл data.json');
+    // Проверяем, существует ли директория
+    try {
+      await fs.access(DATA_DIR);
+    } catch {
+      // Директория не существует, создаем её
+      await fs.mkdir(DATA_DIR, { recursive: true });
+      console.log(`Создана директория: ${DATA_DIR}`);
+    }
+    
+    // Проверяем файл
+    try {
+      await fs.access(DATA_FILE);
+      console.log(`Файл данных существует: ${DATA_FILE}`);
+    } catch {
+      // Файл не существует, создаем пустой объект
+      await fs.writeFile(DATA_FILE, JSON.stringify({
+        websites: [],
+        templates: [],
+        pages: [],
+        settings: {},
+        workflowSchemas: {}
+      }, null, 2));
+      console.log(`Создан файл data.json: ${DATA_FILE}`);
+    }
+  } catch (error) {
+    console.error(`Ошибка при создании файла данных: ${error.message}`);
+    throw error;
   }
 }
 
@@ -112,22 +128,59 @@ if (STATIC_EXISTS) {
 
 // Запуск сервера
 async function start() {
-  await ensureDataFile();
-  
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Сервер запущен на http://0.0.0.0:${PORT}`);
-    console.log(`📁 Данные хранятся в: ${DATA_FILE}`);
-    if (STATIC_EXISTS) {
-      console.log(`📦 Статические файлы: ${STATIC_DIR}`);
-    } else {
-      console.log(`⚠️  Статические файлы не найдены: ${STATIC_DIR}`);
-    }
-    console.log(`\nAPI endpoints:`);
-    console.log(`  GET  /api/data - получить все данные`);
-    console.log(`  POST /api/data - сохранить все данные`);
-    console.log(`  GET  /api/data/:key - получить конкретный ключ`);
-    console.log(`  POST /api/data/:key - сохранить конкретный ключ`);
-  });
+  try {
+    await ensureDataFile();
+    
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Сервер запущен на http://0.0.0.0:${PORT}`);
+      console.log(`📁 Данные хранятся в: ${DATA_FILE}`);
+      if (STATIC_EXISTS) {
+        console.log(`📦 Статические файлы: ${STATIC_DIR}`);
+      } else {
+        console.log(`⚠️  Статические файлы не найдены: ${STATIC_DIR}`);
+      }
+      console.log(`\nAPI endpoints:`);
+      console.log(`  GET  /api/data - получить все данные`);
+      console.log(`  POST /api/data - сохранить все данные`);
+      console.log(`  GET  /api/data/:key - получить конкретный ключ`);
+      console.log(`  POST /api/data/:key - сохранить конкретный ключ`);
+    });
+    
+    // Обработка ошибок сервера
+    server.on('error', (error) => {
+      console.error('Ошибка сервера:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Порт ${PORT} уже занят!`);
+        process.exit(1);
+      } else {
+        process.exit(1);
+      }
+    });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('Получен SIGTERM, завершаем работу...');
+      server.close(() => {
+        console.log('Сервер остановлен');
+        process.exit(0);
+      });
+    });
+    
+    process.on('SIGINT', () => {
+      console.log('Получен SIGINT, завершаем работу...');
+      server.close(() => {
+        console.log('Сервер остановлен');
+        process.exit(0);
+      });
+    });
+    
+  } catch (error) {
+    console.error('Критическая ошибка при запуске:', error);
+    process.exit(1);
+  }
 }
 
-start().catch(console.error);
+start().catch((error) => {
+  console.error('Необработанная ошибка:', error);
+  process.exit(1);
+});
