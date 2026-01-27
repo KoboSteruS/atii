@@ -44,7 +44,20 @@ export function AdminPanel() {
     setIsRefreshing(true);
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      // Автоматически определяем URL API
+      const getApiUrl = () => {
+        if (import.meta.env.VITE_API_URL) {
+          return import.meta.env.VITE_API_URL;
+        }
+        if (import.meta.env.PROD) {
+          const protocol = window.location.protocol;
+          const hostname = window.location.hostname;
+          return `${protocol}//${hostname}:3001`;
+        }
+        return 'http://localhost:3001';
+      };
+      
+      const API_URL = getApiUrl();
       const response = await fetch(`${API_URL}/api/data`);
       
       if (response.ok) {
@@ -63,7 +76,8 @@ export function AdminPanel() {
         throw new Error('Сервер недоступен');
       }
     } catch (error) {
-      alert('Сервер недоступен. Убедитесь, что сервер запущен на http://localhost:3001');
+      const apiUrl = getApiUrl();
+      alert(`Сервер недоступен. Убедитесь, что сервер запущен на ${apiUrl}`);
       console.error('Ошибка обновления данных:', error);
     } finally {
       setIsRefreshing(false);
