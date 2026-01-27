@@ -660,6 +660,90 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Ref для отслеживания внутренних обновлений (избегаем циклических обновлений)
   const isInternalUpdateRef = React.useRef(false);
+  const isServerUpdateRef = React.useRef(false);
+
+  // URL сервера (по умолчанию localhost:3001, можно изменить через .env)
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+  // Функция для сохранения данных на сервер
+  const saveToServer = React.useCallback(async (key: string, data: any) => {
+    if (isServerUpdateRef.current) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/data/${key}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Ошибка сохранения на сервер');
+      }
+    } catch (error) {
+      // Тихая ошибка - не мешаем работе, если сервер недоступен
+      console.warn(`Сервер недоступен, данные сохранены только локально:`, error);
+    }
+  }, [API_URL]);
+
+  // Загрузка данных с сервера при старте
+  useEffect(() => {
+    const loadFromServer = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/data`);
+        
+        if (!response.ok) {
+          throw new Error('Сервер недоступен');
+        }
+        
+        const serverData = await response.json();
+        
+        if (serverData && !isServerUpdateRef.current) {
+          isInternalUpdateRef.current = true;
+          isServerUpdateRef.current = true;
+          
+          try {
+            if (serverData.websites && Array.isArray(serverData.websites)) {
+              setWebsites(serverData.websites);
+              localStorage.setItem('atii_websites', JSON.stringify(serverData.websites));
+            }
+            if (serverData.templates && Array.isArray(serverData.templates)) {
+              setTemplates(serverData.templates);
+              localStorage.setItem('atii_templates', JSON.stringify(serverData.templates));
+            }
+            if (serverData.pages && Array.isArray(serverData.pages)) {
+              setPages(serverData.pages);
+              localStorage.setItem('atii_pages', JSON.stringify(serverData.pages));
+            }
+            if (serverData.settings && typeof serverData.settings === 'object') {
+              setSettings(serverData.settings);
+              localStorage.setItem('atii_settings', JSON.stringify(serverData.settings));
+            }
+            if (serverData.workflowSchemas && typeof serverData.workflowSchemas === 'object') {
+              setWorkflowSchemas(serverData.workflowSchemas);
+              localStorage.setItem('atii_workflow_schemas', JSON.stringify(serverData.workflowSchemas));
+            }
+          } finally {
+            setTimeout(() => {
+              isInternalUpdateRef.current = false;
+              isServerUpdateRef.current = false;
+            }, 100);
+          }
+        }
+      } catch (error) {
+        // Сервер недоступен - используем данные из localStorage
+        console.warn('Сервер недоступен, используем локальные данные:', error);
+      }
+    };
+
+    loadFromServer();
+    
+    // Периодическая проверка обновлений (каждые 30 секунд)
+    const interval = setInterval(loadFromServer, 30000);
+    
+    return () => clearInterval(interval);
+  }, [API_URL]);
 
   // Save to localStorage whenever data changes (внутренние изменения)
   useEffect(() => {
@@ -675,8 +759,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
+    // Синхронизируем с сервером
+    saveToServer('websites', websites);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [websites]);
+  }, [websites, saveToServer]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -690,8 +776,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
+    saveToServer('templates', templates);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [templates]);
+  }, [templates, saveToServer]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -705,8 +792,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
+    saveToServer('workflowSchemas', workflowSchemas);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [workflowSchemas]);
+  }, [workflowSchemas, saveToServer]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -720,8 +808,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
+    saveToServer('pages', pages);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [pages]);
+  }, [pages, saveToServer]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -735,8 +824,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
+    saveToServer('settings', settings);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [settings]);
+  }, [settings, saveToServer]);
 
   // Слушаем изменения localStorage из других вкладок и из того же окна
   useEffect(() => {

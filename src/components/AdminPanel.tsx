@@ -39,25 +39,35 @@ export function AdminPanel() {
   const [templateFilter, setTemplateFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Функция принудительного обновления данных (очистка кеша)
-  const refreshDataFromServer = () => {
-    if (!confirm('Очистить локальный кеш и перезагрузить страницу? Это загрузит дефолтные данные или данные из импортированного файла.')) {
-      return;
-    }
-    
+  // Функция принудительного обновления данных с сервера
+  const refreshDataFromServer = async () => {
     setIsRefreshing(true);
     
-    // Очищаем все данные из localStorage
-    localStorage.removeItem('atii_websites');
-    localStorage.removeItem('atii_templates');
-    localStorage.removeItem('atii_pages');
-    localStorage.removeItem('atii_settings');
-    localStorage.removeItem('atii_workflow_schemas');
-    
-    // Перезагружаем страницу для загрузки дефолтных данных
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/data`);
+      
+      if (response.ok) {
+        const serverData = await response.json();
+        
+        // Обновляем localStorage данными с сервера
+        if (serverData.websites) localStorage.setItem('atii_websites', JSON.stringify(serverData.websites));
+        if (serverData.templates) localStorage.setItem('atii_templates', JSON.stringify(serverData.templates));
+        if (serverData.pages) localStorage.setItem('atii_pages', JSON.stringify(serverData.pages));
+        if (serverData.settings) localStorage.setItem('atii_settings', JSON.stringify(serverData.settings));
+        if (serverData.workflowSchemas) localStorage.setItem('atii_workflow_schemas', JSON.stringify(serverData.workflowSchemas));
+        
+        alert('Данные успешно обновлены с сервера! Страница будет перезагружена.');
+        window.location.reload();
+      } else {
+        throw new Error('Сервер недоступен');
+      }
+    } catch (error) {
+      alert('Сервер недоступен. Убедитесь, что сервер запущен на http://localhost:3001');
+      console.error('Ошибка обновления данных:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
   
   // Export/Import functions
