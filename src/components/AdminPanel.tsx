@@ -52,7 +52,11 @@ export function AdminPanel() {
         if (import.meta.env.PROD) {
           const protocol = window.location.protocol;
           const hostname = window.location.hostname;
-          return `${protocol}//${hostname}:3001`;
+          const port = window.location.port;
+          if (port && port !== '80' && port !== '443') {
+            return `${protocol}//${hostname}:3001`;
+          }
+          return ''; // Относительный путь - Nginx проксирует
         }
         return 'http://localhost:3001';
       };

@@ -669,21 +669,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return import.meta.env.VITE_API_URL;
     }
     
-    // В production используем тот же домен, что и фронтенд
+    // В production используем относительный путь, если Nginx проксирует
+    // Или полный URL с портом, если API доступен напрямую
     if (import.meta.env.PROD) {
       const protocol = window.location.protocol;
       const hostname = window.location.hostname;
       const port = window.location.port;
       
-      // Если есть порт в URL (например, tech.at-ii.ru:8080) - API на порту 3001
+      // Если есть порт в URL (не стандартные 80/443) - API на порту 3001
       if (port && port !== '80' && port !== '443') {
         return `${protocol}//${hostname}:3001`;
       }
       
-      // Если нет порта или стандартные порты (80/443) - проверяем, проксирует ли Nginx
-      // Если Nginx проксирует всё на localhost:3001, используем тот же домен
-      // Иначе используем порт 3001
-      return `${protocol}//${hostname}:3001`;
+      // Если нет порта (стандартные 80/443) - используем тот же домен
+      // Nginx должен проксировать /api на localhost:3001
+      // Используем относительный путь для API (Nginx проксирует)
+      return ''; // Относительный путь - Nginx проксирует
     }
     
     // В development используем localhost
