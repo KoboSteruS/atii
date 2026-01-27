@@ -39,7 +39,3 @@ lerna-debug.log*
 
 # TypeScript
 *.tsbuildinfo
-
-# Server
-server/data.json
-server/node_modules

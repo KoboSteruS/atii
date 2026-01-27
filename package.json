@@ -59,7 +59,6 @@
       },
       "scripts": {
           "dev": "vite",
-          "build": "vite build",
-          "deploy:prepare": "npm run build && tar -czf atii-deploy.tar.gz dist/ server/ package.json package-lock.json"
+          "build": "vite build"
       }
   }

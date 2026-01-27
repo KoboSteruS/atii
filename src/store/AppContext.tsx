@@ -660,108 +660,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Ref для отслеживания внутренних обновлений (избегаем циклических обновлений)
   const isInternalUpdateRef = React.useRef(false);
-  const isServerUpdateRef = React.useRef(false);
-
-  // URL сервера - используем относительный путь в production (через Nginx)
-  const getApiUrl = () => {
-    // Если задан в .env - используем его (приоритет)
-    if (import.meta.env.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL;
-    }
-    
-    // В production используем относительный путь - Nginx проксирует к localhost:3001
-    // Это решает проблему с SSL сертификатом (запросы идут через тот же домен)
-    if (import.meta.env.PROD) {
-      // Используем пустую строку для относительного пути
-      // fetch будет использовать текущий origin (домен)
-      return '';
-    }
-    
-    // В development используем localhost
-    return 'http://localhost:3001';
-  };
-  
-  const API_URL = getApiUrl();
-
-  // Функция для сохранения данных на сервер
-  const saveToServer = React.useCallback(async (key: string, data: any) => {
-    if (isServerUpdateRef.current) return;
-    
-    try {
-      const response = await fetch(`${API_URL}/api/data/${key}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Ошибка сохранения на сервер');
-      }
-    } catch (error) {
-      // Тихая ошибка - не мешаем работе, если сервер недоступен
-      console.warn(`Сервер недоступен, данные сохранены только локально:`, error);
-    }
-  }, [API_URL]);
-
-  // Загрузка данных с сервера при старте
-  useEffect(() => {
-    const loadFromServer = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/data`);
-        
-        if (!response.ok) {
-          throw new Error('Сервер недоступен');
-        }
-        
-        const serverData = await response.json();
-        
-        if (serverData && !isServerUpdateRef.current) {
-          isInternalUpdateRef.current = true;
-          isServerUpdateRef.current = true;
-          
-          try {
-            if (serverData.websites && Array.isArray(serverData.websites)) {
-              setWebsites(serverData.websites);
-              localStorage.setItem('atii_websites', JSON.stringify(serverData.websites));
-            }
-            if (serverData.templates && Array.isArray(serverData.templates)) {
-              setTemplates(serverData.templates);
-              localStorage.setItem('atii_templates', JSON.stringify(serverData.templates));
-            }
-            if (serverData.pages && Array.isArray(serverData.pages)) {
-              setPages(serverData.pages);
-              localStorage.setItem('atii_pages', JSON.stringify(serverData.pages));
-            }
-            if (serverData.settings && typeof serverData.settings === 'object') {
-              setSettings(serverData.settings);
-              localStorage.setItem('atii_settings', JSON.stringify(serverData.settings));
-            }
-            if (serverData.workflowSchemas && typeof serverData.workflowSchemas === 'object') {
-              setWorkflowSchemas(serverData.workflowSchemas);
-              localStorage.setItem('atii_workflow_schemas', JSON.stringify(serverData.workflowSchemas));
-            }
-          } finally {
-            setTimeout(() => {
-              isInternalUpdateRef.current = false;
-              isServerUpdateRef.current = false;
-            }, 100);
-          }
-        }
-      } catch (error) {
-        // Сервер недоступен - используем данные из localStorage
-        console.warn('Сервер недоступен, используем локальные данные:', error);
-      }
-    };
-
-    loadFromServer();
-    
-    // Периодическая проверка обновлений (каждые 30 секунд)
-    const interval = setInterval(loadFromServer, 30000);
-    
-    return () => clearInterval(interval);
-  }, [API_URL]);
 
   // Save to localStorage whenever data changes (внутренние изменения)
   useEffect(() => {
@@ -777,10 +675,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
-    // Синхронизируем с сервером
-    saveToServer('websites', websites);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [websites, saveToServer]);
+  }, [websites]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -794,9 +690,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
-    saveToServer('templates', templates);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [templates, saveToServer]);
+  }, [templates]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -810,9 +705,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
-    saveToServer('workflowSchemas', workflowSchemas);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [workflowSchemas, saveToServer]);
+  }, [workflowSchemas]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -826,9 +720,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
-    saveToServer('pages', pages);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [pages, saveToServer]);
+  }, [pages]);
 
   useEffect(() => {
     if (isInternalUpdateRef.current) return;
@@ -842,9 +735,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storageArea: localStorage
       }
     }));
-    saveToServer('settings', settings);
     setTimeout(() => { isInternalUpdateRef.current = false; }, 0);
-  }, [settings, saveToServer]);
+  }, [settings]);
 
   // Слушаем изменения localStorage из других вкладок и из того же окна
   useEffect(() => {
