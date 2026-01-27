@@ -54,14 +54,14 @@ sudo lsof -i :3001
 npm run build
 
 # 2. Загрузить на сервер
-scp -r dist/ user@your-server.com:/tmp/
+scp -r build/ user@your-server.com:/tmp/
 ```
 
 #### На сервере:
 ```bash
-# 3. Скопировать dist на место
-sudo cp -r /tmp/dist /var/www/atii/
-sudo chown -R www-data:www-data /var/www/atii/dist
+# 3. Скопировать build на место
+sudo cp -r /tmp/build /var/www/atii/
+sudo chown -R www-data:www-data /var/www/atii/build
 
 # 4. Перезапустить сервис
 sudo systemctl restart atii-sync

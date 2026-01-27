@@ -23,7 +23,7 @@ npm run build
 
 # 2. Создать архив для загрузки на сервер
 tar -czf atii-deploy.tar.gz \
-  dist/ \
+  build/ \
   server/ \
   package.json \
   package-lock.json
@@ -78,7 +78,7 @@ sudo nano /etc/systemd/system/atii-sync.service
 # - WorkingDirectory=/var/www/atii/server
 # - ExecStart=/usr/bin/node /var/www/atii/server/index.js
 # - DATA_DIR=/var/www/atii/server
-# - STATIC_DIR=/var/www/atii/dist
+# - STATIC_DIR=/var/www/atii/build
 
 # 3. Перезагрузить systemd
 sudo systemctl daemon-reload
@@ -203,12 +203,12 @@ sudo journalctl -u atii-sync.service --since "1 hour ago"
 npm run build
 
 # 2. Загрузить на сервер
-scp -r dist/ user@your-server.com:/tmp/
+scp -r build/ user@your-server.com:/tmp/
 scp server/index.js user@your-server.com:/tmp/
 
 # 3. На сервере обновить файлы
 ssh user@your-server.com
-sudo cp -r /tmp/dist /var/www/atii/
+sudo cp -r /tmp/build /var/www/atii/
 sudo cp /tmp/index.js /var/www/atii/server/
 
 # 4. Перезапустить сервис
@@ -278,7 +278,7 @@ curl http://localhost:3001/api/data
 ```ini
 Environment="PORT=3001"
 Environment="DATA_DIR=/var/www/atii/server"
-Environment="STATIC_DIR=/var/www/atii/dist"
+Environment="STATIC_DIR=/var/www/atii/build"
 Environment="NODE_ENV=production"
 ```
 
@@ -297,7 +297,7 @@ sudo ufw enable
 2. **Права доступа:**
 ```bash
 # Только для чтения статические файлы
-sudo chmod -R 755 /var/www/atii/dist
+sudo chmod -R 755 /var/www/atii/build
 
 # Права на данные
 sudo chmod 644 /var/www/atii/server/data.json

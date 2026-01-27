@@ -15,7 +15,7 @@ const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 // Путь к статическим файлам (production build)
-const STATIC_DIR = process.env.STATIC_DIR || path.join(__dirname, '..', 'dist');
+const STATIC_DIR = process.env.STATIC_DIR || path.join(__dirname, '..', 'build');
 const STATIC_EXISTS = fsSync.existsSync(STATIC_DIR);
 
 // Middleware
