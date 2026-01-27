@@ -50,9 +50,9 @@ export function AdminPanel() {
           return import.meta.env.VITE_API_URL;
         }
         if (import.meta.env.PROD) {
-          // Используем IP сервера для API запросов
-          const protocol = window.location.protocol;
-          return `${protocol}//193.124.114.86`;
+          // Используем относительный путь - Nginx проксирует к localhost:3001
+          // Это решает проблему с SSL сертификатом
+          return '';
         }
         return 'http://localhost:3001';
       };
@@ -81,8 +81,8 @@ export function AdminPanel() {
           return import.meta.env.VITE_API_URL;
         }
         if (import.meta.env.PROD) {
-          const protocol = window.location.protocol;
-          return `${protocol}//193.124.114.86`;
+          // Используем относительный путь
+          return '';
         }
         return 'http://localhost:3001';
       };

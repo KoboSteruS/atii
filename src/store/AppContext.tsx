@@ -662,19 +662,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isInternalUpdateRef = React.useRef(false);
   const isServerUpdateRef = React.useRef(false);
 
-  // URL сервера - используем IP 193.124.114.86 для production
+  // URL сервера - используем относительный путь в production (через Nginx)
   const getApiUrl = () => {
     // Если задан в .env - используем его (приоритет)
     if (import.meta.env.VITE_API_URL) {
       return import.meta.env.VITE_API_URL;
     }
     
-    // В production используем IP сервера
+    // В production используем относительный путь - Nginx проксирует к localhost:3001
+    // Это решает проблему с SSL сертификатом (запросы идут через тот же домен)
     if (import.meta.env.PROD) {
-      // Используем IP сервера для API запросов
-      // Протокол определяем на основе текущего протокола
-      const protocol = window.location.protocol;
-      return `${protocol}//193.124.114.86`;
+      // Используем пустую строку для относительного пути
+      // fetch будет использовать текущий origin (домен)
+      return '';
     }
     
     // В development используем localhost
