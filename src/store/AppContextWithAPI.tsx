@@ -105,7 +105,12 @@ export function AppProviderWithAPI({ children }: { children: ReactNode }) {
           console.error('Ошибка загрузки страниц:', pagesData.reason);
           const cached = localStorage.getItem('atii_pages');
           if (cached) {
-            setPages(JSON.parse(cached));
+            const parsed = JSON.parse(cached) as PageContent[];
+            const normalized = parsed.map((p: PageContent) => ({
+              ...p,
+              page_id: p.page_id ?? (['home', 'about', 'templates', 'custom'].includes(p.id) ? p.id : undefined),
+            }));
+            setPages(normalized);
           }
         }
         setLoading(prev => ({ ...prev, pages: false }));
@@ -151,7 +156,14 @@ export function AppProviderWithAPI({ children }: { children: ReactNode }) {
 
         if (cachedWebsites) setWebsites(JSON.parse(cachedWebsites));
         if (cachedTemplates) setTemplates(JSON.parse(cachedTemplates));
-        if (cachedPages) setPages(JSON.parse(cachedPages));
+        if (cachedPages) {
+          const parsed = JSON.parse(cachedPages) as PageContent[];
+          const normalized = parsed.map((p: PageContent) => ({
+            ...p,
+            page_id: p.page_id ?? (['home', 'about', 'templates', 'custom'].includes(p.id) ? p.id : undefined),
+          }));
+          setPages(normalized);
+        }
         if (cachedSettings) setSettings(JSON.parse(cachedSettings));
         if (cachedSchemas) setWorkflowSchemas(JSON.parse(cachedSchemas));
 
@@ -384,11 +396,26 @@ export function AppProviderWithAPI({ children }: { children: ReactNode }) {
     return workflowSchemas[templateId] || [];
   };
 
-  // Page methods
+  // Служебный список slug'ов страниц (бэкенд ожидает page_id в пути PUT)
+  const PAGE_SLUGS = ['home', 'about', 'templates', 'custom'];
+
+  // Page methods (id — UUID или page_id; для API бэкенд ожидает page_id в пути)
   const updatePage = async (id: string, updates: Partial<PageContent>) => {
+    let page = pages.find(p => p.id === id);
+    let pageIdForApi = page?.page_id ?? (PAGE_SLUGS.includes(id) ? id : undefined);
+    if (useAPI && !pageIdForApi && page?.id) {
+      try {
+        const list = await apiClient.getPages() as PageContent[];
+        const fromApi = list.find((p: PageContent) => p.id === id);
+        if (fromApi?.page_id) pageIdForApi = fromApi.page_id;
+      } catch {
+        // игнорируем, ниже попробуем id
+      }
+    }
+    pageIdForApi = pageIdForApi ?? id;
     try {
       if (useAPI) {
-        const updated = await apiClient.updatePage(id, { ...updates, updated: 'только что' });
+        const updated = await apiClient.updatePage(pageIdForApi, { ...updates, updated: 'только что' });
         setPages(pages.map(p => p.id === id ? updated : p));
         localStorage.setItem('atii_pages', JSON.stringify(pages.map(p => p.id === id ? updated : p)));
       } else {

@@ -62,6 +62,8 @@ export interface ContentSection {
 
 export interface PageContent {
   id: string;
+  /** Слаг страницы для API: home, about, custom (бэкенд использует в пути PUT/GET) */
+  page_id?: string;
   name: string;
   sections: number;
   updated: string;

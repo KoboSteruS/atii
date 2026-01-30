@@ -137,20 +137,32 @@ export async function syncLocalStorageToApi(): Promise<SyncResult> {
       }
     }
 
-    // 4. Страницы (POST каждая)
+    // 4. Страницы: create или update (если уже есть — PUT)
     if (Array.isArray(pages)) {
       for (const p of pages) {
+        const pageId = (p.page_id ?? p.id ?? '') as string;
+        if (!pageId) continue;
+        const payload = {
+          name: p.name ?? '',
+          sections: typeof p.sections === 'number' ? p.sections : 0,
+          updated: (p.updated as string) ?? null,
+          content: (p.content as Record<string, unknown>) ?? {},
+        };
         try {
-          await apiClient.createPage({
-            page_id: p.page_id ?? p.id ?? '',
-            name: p.name ?? '',
-            sections: typeof p.sections === 'number' ? p.sections : 0,
-            updated: (p.updated as string) ?? null,
-            content: (p.content as Record<string, unknown>) ?? {},
-          });
+          await apiClient.createPage({ page_id: pageId, ...payload });
           details.pages.created += 1;
         } catch (e) {
-          details.pages.errors.push(p.name ? `${p.name}: ${e instanceof Error ? e.message : String(e)}` : String(e));
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('уже существует') || msg.includes('already exists')) {
+            try {
+              await apiClient.updatePage(pageId, payload);
+              details.pages.created += 1; // считаем как успешную "синхронизацию"
+            } catch (e2) {
+              details.pages.errors.push(p.name ? `${p.name}: ${e2 instanceof Error ? e2.message : String(e2)}` : String(e2));
+            }
+          } else {
+            details.pages.errors.push(p.name ? `${p.name}: ${msg}` : msg);
+          }
         }
       }
     }
@@ -266,19 +278,30 @@ export async function seedDemoDataToApi(): Promise<SyncResult> {
       }
     }
 
-    // 4. Страницы (page_id = id из дефолта: home, about, custom)
+    // 4. Страницы: create или update (home, about, templates, custom)
     for (const p of defaultPages) {
+      const pageId = p.page_id ?? p.id;
+      const payload = {
+        name: p.name,
+        sections: p.sections ?? 0,
+        updated: p.updated ?? null,
+        content: p.content ?? {},
+      };
       try {
-        await apiClient.createPage({
-          page_id: p.id,
-          name: p.name,
-          sections: p.sections ?? 0,
-          updated: p.updated ?? null,
-          content: p.content ?? {},
-        });
+        await apiClient.createPage({ page_id: pageId, ...payload });
         details.pages.created += 1;
       } catch (e) {
-        details.pages.errors.push(`${p.name}: ${e instanceof Error ? e.message : String(e)}`);
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes('уже существует') || msg.includes('already exists')) {
+          try {
+            await apiClient.updatePage(pageId, payload);
+            details.pages.created += 1;
+          } catch (e2) {
+            details.pages.errors.push(`${p.name}: ${e2 instanceof Error ? e2.message : String(e2)}`);
+          }
+        } else {
+          details.pages.errors.push(`${p.name}: ${msg}`);
+        }
       }
     }
   } catch (e) {

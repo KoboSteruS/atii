@@ -1,7 +1,9 @@
 """
 Endpoints для workflow схем (визуальный редактор)
 """
+from datetime import datetime
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from loguru import logger
@@ -34,13 +36,16 @@ def get_workflow_schema_by_template(
     db: Session = Depends(get_db)
 ):
     """
-    Получить workflow схему по ID шаблона
+    Получить workflow схему по ID шаблона. Если схемы нет — 200 с пустыми nodes.
     """
     schema = db.query(WorkflowSchema).filter(WorkflowSchema.template_id == template_id).first()
     if not schema:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workflow схема не найдена"
+        return WorkflowSchemaResponse(
+            id="",
+            template_id=template_id,
+            nodes=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
         )
     return schema
 
