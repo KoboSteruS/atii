@@ -1,7 +1,10 @@
 /**
  * API клиент для работы с бэкендом
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+/** В production без VITE_API_URL — относительный путь (тот же хост, nginx проксирует /api/) */
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8000/api/v1');
 
 export interface ApiError {
   detail: string;
