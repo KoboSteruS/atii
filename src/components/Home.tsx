@@ -34,7 +34,7 @@ const getIcon = (iconName?: string, size: number = 32) => {
 };
 
 export function Home() {
-  const { pages } = useApp();
+  const { pages, websites } = useApp();
   const homePage = pages.find(p => (p.page_id || p.id) === 'home');
   const content = homePage?.content || {};
   const heroContent = content.hero || {};
@@ -166,9 +166,26 @@ export function Home() {
     { id: '4', value: '24/7', label: 'Техподдержка' }
   ];
   
-  // Используем данные из Context, если они есть и не пустые, иначе дефолтные
+  // «Примеры наших работ» — 3 проекта из Портфолио с галочкой «В избранном», иначе контент страницы или дефолт
+  const featuredFromPortfolio = websites
+    .filter((w) => w.featured)
+    .slice(0, 3)
+    .map((w) => ({
+      id: w.id,
+      title: w.name,
+      category: w.category,
+      image: w.screenshot,
+      description: w.description,
+      tech: w.technologies ?? [],
+    }));
+  const projects =
+    featuredFromPortfolio.length > 0
+      ? featuredFromPortfolio
+      : (content.projects && content.projects.length > 0)
+        ? content.projects
+        : defaultProjects;
+
   const features = (content.features && content.features.length > 0) ? content.features : defaultFeatures;
-  const projects = (content.projects && content.projects.length > 0) ? content.projects : defaultProjects;
   const solutions = (content.solutions && content.solutions.length > 0) ? content.solutions : defaultSolutions;
   const capabilities = (content.capabilities && content.capabilities.length > 0) ? content.capabilities : defaultCapabilities;
   const stats = (content.stats && content.stats.length > 0) ? content.stats : defaultStats;
@@ -814,7 +831,7 @@ export function Home() {
             viewport={{ once: true }}
           >
             <Link
-              to="/about"
+              to="/portfolio"
               className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900/50 hover:bg-zinc-800/50 border border-zinc-700 hover:border-red-500/50 rounded-lg transition-all backdrop-blur-sm"
             >
               Посмотреть все проекты
