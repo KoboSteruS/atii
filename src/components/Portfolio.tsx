@@ -66,14 +66,14 @@ export function Portfolio() {
         >
           <div className="flex items-center gap-3 mb-4">
             <MonitorPlay className="text-red-500" size={32} />
-            <MarkdownHeading level={1}>## Портфолио сайтов</MarkdownHeading>
+            <MarkdownHeading level={1}>## Портфолио Проектов</MarkdownHeading>
           </div>
           <p className="text-zinc-400 text-lg font-mono">
             <span className="text-red-500">$</span> ls --websites --all --production
           </p>
           <div className="mt-4 flex items-center gap-2 text-zinc-500 font-mono text-sm">
             <Globe size={16} />
-            <span>{websites.length} сайтов разработано</span>
+            <span>{websites.length} Проектов разработано</span>
             <ChevronRight size={16} />
             <span>{featuredWebsites.length} в избранном</span>
           </div>
@@ -91,7 +91,7 @@ export function Portfolio() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
             <input
               type="text"
-              placeholder="Поиск сайтов..."
+              placeholder="Поиск проектов..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-colors font-mono"
@@ -131,7 +131,7 @@ export function Portfolio() {
             <div className="flex items-center gap-2 mb-6">
               <Sparkles className="text-yellow-500" size={24} />
               <h2 className="text-2xl font-mono">
-                <span className="text-yellow-500">#</span> Избранные сайты
+                <span className="text-yellow-500">#</span> Избранные Проекты
               </h2>
             </div>
 
@@ -234,7 +234,7 @@ export function Portfolio() {
           <div className="flex items-center gap-2 mb-6">
             <Globe className="text-red-500" size={24} />
             <h2 className="text-2xl font-mono">
-              <span className="text-red-500">#</span> Все сайты
+              <span className="text-red-500">#</span> Все Проекты
             </h2>
             <span className="ml-auto text-zinc-500 font-mono text-sm">
               {filteredWebsites.length} найдено
@@ -356,7 +356,7 @@ export function Portfolio() {
               >
                 <div className="inline-block p-6 bg-zinc-900/50 border border-zinc-800 rounded-lg">
                   <MonitorPlay className="text-zinc-600 mb-4 mx-auto" size={48} />
-                  <p className="text-zinc-500 font-mono">Сайты не найдены</p>
+                  <p className="text-zinc-500 font-mono">Проекты не найдены</p>
                   <p className="text-zinc-600 text-sm font-mono mt-2">
                     <span className="text-red-500">error:</span> No matching websites
                   </p>
@@ -375,7 +375,7 @@ export function Portfolio() {
         >
           <div className="p-8 bg-gradient-to-r from-red-600/10 via-pink-600/10 to-purple-600/10 border border-red-500/30 rounded-xl text-center">
             <h3 className="text-2xl mb-3 font-mono">
-              <span className="text-red-500">&gt;</span> Хотите свой сайт?
+              <span className="text-red-500">&gt;</span> Хотите свой проект?
             </h3>
             <p className="text-zinc-400 mb-6 font-mono text-sm">
               <span className="text-cyan-500">const</span> yourWebsite = 

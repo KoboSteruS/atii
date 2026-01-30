@@ -118,6 +118,14 @@ export function AdminPanel() {
   // Content editor state
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [pageContentForm, setPageContentForm] = useState<any>({});
+  /** Сырые строки для полей «через запятую» в редакторе контента — чтобы запятая не съедалась при вводе */
+  const [contentArrayRawInputs, setContentArrayRawInputs] = useState<{
+    projectsTech: Record<string, string>;
+    workflowDetails: Record<string, string>;
+    caseStudiesTech: Record<string, string>;
+  }>({ projectsTech: {}, workflowDetails: {}, caseStudiesTech: {} });
+  /** Сырая строка «Технологии» в форме Портфолио (websites) */
+  const [technologiesInput, setTechnologiesInput] = useState('');
 
   // Импорт в БД из LocalStorage
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
@@ -330,6 +338,7 @@ export function AdminPanel() {
       }
     } else {
       setPageContentForm({});
+      setContentArrayRawInputs({ projectsTech: {}, workflowDetails: {}, caseStudiesTech: {} });
     }
   }, [editingPageId, pages]);
   
@@ -405,8 +414,9 @@ export function AdminPanel() {
   };
 
   const handleSaveProject = () => {
+    const techArray = technologiesInput.split(',').map(t => t.trim()).filter(Boolean);
     if (editingProject) {
-      updateWebsite(editingProject, projectForm);
+      updateWebsite(editingProject, { ...projectForm, technologies: techArray });
     } else {
       const newProject: Omit<Website, 'id'> = {
         name: projectForm.name || '',
@@ -414,7 +424,7 @@ export function AdminPanel() {
         description: projectForm.description || '',
         url: projectForm.url || '',
         screenshot: projectForm.screenshot || '',
-        technologies: projectForm.technologies || [],
+        technologies: techArray,
         category: projectForm.category || 'E-commerce',
         date: projectForm.date || new Date().toISOString().slice(0, 7),
         featured: projectForm.featured || false,
@@ -424,12 +434,14 @@ export function AdminPanel() {
     setShowProjectForm(false);
     setEditingProject(null);
     setProjectForm({});
+    setTechnologiesInput('');
   };
 
   const handleEditProject = (id: string) => {
     const project = websites.find(w => w.id === id);
     if (project) {
       setProjectForm(project);
+      setTechnologiesInput(project.technologies?.join(', ') ?? '');
       setEditingProject(id);
       setShowProjectForm(true);
     }
@@ -1191,11 +1203,10 @@ export function AdminPanel() {
                             <input
                               type="text"
                               placeholder="Технологии (через запятую)"
-                              value={(project.tech || []).join(', ')}
+                              value={contentArrayRawInputs.projectsTech[`${editingPageId}-projects-${idx}`] ?? (project.tech || []).join(', ')}
                               onChange={(e) => {
-                                const updated = [...(pageContentForm.projects || [])];
-                                updated[idx] = { ...updated[idx], tech: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean) };
-                                setPageContentForm({ ...pageContentForm, projects: updated });
+                                const key = `${editingPageId}-projects-${idx}`;
+                                setContentArrayRawInputs(prev => ({ ...prev, projectsTech: { ...prev.projectsTech, [key]: e.target.value } }));
                               }}
                               className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:border-red-500 focus:outline-none"
                             />
@@ -1724,11 +1735,10 @@ export function AdminPanel() {
                               <input
                                 type="text"
                                 placeholder="Деталь 1, Деталь 2, Деталь 3"
-                                value={(step.details || []).join(', ')}
+                                value={contentArrayRawInputs.workflowDetails[`${editingPageId}-workflow-${idx}`] ?? (step.details || []).join(', ')}
                                 onChange={(e) => {
-                                  const updated = [...(pageContentForm.workflowSteps || [])];
-                                  updated[idx] = { ...updated[idx], details: e.target.value.split(',').map((d: string) => d.trim()).filter(Boolean) };
-                                  setPageContentForm({ ...pageContentForm, workflowSteps: updated });
+                                  const key = `${editingPageId}-workflow-${idx}`;
+                                  setContentArrayRawInputs(prev => ({ ...prev, workflowDetails: { ...prev.workflowDetails, [key]: e.target.value } }));
                                 }}
                                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:border-red-500 focus:outline-none"
                               />
@@ -1876,11 +1886,10 @@ export function AdminPanel() {
                               <input
                                 type="text"
                                 placeholder="Технологии (через запятую)"
-                                value={(study.tech || []).join(', ')}
+                                value={contentArrayRawInputs.caseStudiesTech[`${editingPageId}-case-${idx}`] ?? (study.tech || []).join(', ')}
                                 onChange={(e) => {
-                                  const updated = [...(pageContentForm.caseStudies || [])];
-                                  updated[idx] = { ...updated[idx], tech: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean) };
-                                  setPageContentForm({ ...pageContentForm, caseStudies: updated });
+                                  const key = `${editingPageId}-case-${idx}`;
+                                  setContentArrayRawInputs(prev => ({ ...prev, caseStudiesTech: { ...prev.caseStudiesTech, [key]: e.target.value } }));
                                 }}
                                 className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:border-red-500 focus:outline-none"
                               />
@@ -1907,6 +1916,7 @@ export function AdminPanel() {
                     onClick={() => {
                       setEditingPageId(null);
                       setPageContentForm({});
+                      setContentArrayRawInputs({ projectsTech: {}, workflowDetails: {}, caseStudiesTech: {} });
                     }}
                     className="px-6 py-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-zinc-600 transition-all"
                   >
@@ -1914,13 +1924,37 @@ export function AdminPanel() {
             </button>
                   <button 
                     onClick={() => {
+                      const parseCommaList = (s: string) => s.split(',').map((t: string) => t.trim()).filter(Boolean);
+                      const contentToSave = { ...pageContentForm };
+                      if (contentToSave.projects) {
+                        contentToSave.projects = contentToSave.projects.map((p: any, idx: number) => {
+                          const raw = contentArrayRawInputs.projectsTech[`${editingPageId}-projects-${idx}`];
+                          const tech = raw !== undefined ? parseCommaList(raw) : (p.tech || []);
+                          return { ...p, tech };
+                        });
+                      }
+                      if (contentToSave.workflowSteps) {
+                        contentToSave.workflowSteps = contentToSave.workflowSteps.map((s: any, idx: number) => {
+                          const raw = contentArrayRawInputs.workflowDetails[`${editingPageId}-workflow-${idx}`];
+                          const details = raw !== undefined ? parseCommaList(raw) : (s.details || []);
+                          return { ...s, details };
+                        });
+                      }
+                      if (contentToSave.caseStudies) {
+                        contentToSave.caseStudies = contentToSave.caseStudies.map((c: any, idx: number) => {
+                          const raw = contentArrayRawInputs.caseStudiesTech[`${editingPageId}-case-${idx}`];
+                          const tech = raw !== undefined ? parseCommaList(raw) : (c.tech || []);
+                          return { ...c, tech };
+                        });
+                      }
                       updatePage(editingPageId, {
-                        content: pageContentForm,
+                        content: contentToSave,
                         updated: 'только что'
                       });
                       alert(`Контент страницы "${editingPage.name}" сохранён!`);
                       setEditingPageId(null);
                       setPageContentForm({});
+                      setContentArrayRawInputs({ projectsTech: {}, workflowDetails: {}, caseStudiesTech: {} });
                     }}
                     className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg hover:shadow-lg hover:shadow-red-500/30 transition-all flex items-center gap-2"
                   >
@@ -2037,7 +2071,14 @@ export function AdminPanel() {
           <p className="text-zinc-400">Управление кейсами на странице портфолио</p>
         </div>
         <button 
-          onClick={() => setShowProjectForm(!showProjectForm)}
+          onClick={() => {
+            if (!showProjectForm) {
+              setEditingProject(null);
+              setProjectForm({});
+              setTechnologiesInput('');
+            }
+            setShowProjectForm(!showProjectForm);
+          }}
           className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg hover:shadow-lg hover:shadow-red-500/30 transition-all flex items-center gap-2"
         >
           <Plus size={18} />
@@ -2162,11 +2203,8 @@ export function AdminPanel() {
                 <input
                   type="text"
                   placeholder="React, Node.js, PostgreSQL, 1C Integration, Stripe"
-                  value={projectForm.technologies?.join(', ') || ''}
-                  onChange={(e) => setProjectForm({ 
-                    ...projectForm, 
-                    technologies: e.target.value.split(',').map(t => t.trim()).filter(t => t) 
-                  })}
+                  value={technologiesInput}
+                  onChange={(e) => setTechnologiesInput(e.target.value)}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:border-red-500 focus:outline-none"
                 />
               </div>
@@ -2262,6 +2300,7 @@ export function AdminPanel() {
                     setShowProjectForm(false);
                     setEditingProject(null);
                     setProjectForm({});
+                    setTechnologiesInput('');
                   }}
                   className="px-6 py-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-zinc-600 transition-all"
                 >
