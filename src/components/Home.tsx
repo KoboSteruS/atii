@@ -35,7 +35,7 @@ const getIcon = (iconName?: string, size: number = 32) => {
 
 export function Home() {
   const { pages } = useApp();
-  const homePage = pages.find(p => p.id === 'home');
+  const homePage = pages.find(p => (p.page_id || p.id) === 'home');
   const content = homePage?.content || {};
   const heroContent = content.hero || {};
   const [isMobile, setIsMobile] = useState(false);

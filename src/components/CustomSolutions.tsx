@@ -24,7 +24,7 @@ interface FormData {
 
 export function CustomSolutions() {
   const { pages } = useApp();
-  const customPage = pages.find(p => p.id === 'custom');
+  const customPage = pages.find(p => (p.page_id || p.id) === 'custom');
   const heroContent = customPage?.content?.hero || {};
   
   const [formData, setFormData] = useState<FormData>({

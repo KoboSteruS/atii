@@ -130,7 +130,7 @@ export function AdminPanel() {
   // Load page content when editing - загружаем ВСЕ данные сразу
   useEffect(() => {
     if (editingPageId) {
-      const page = pages.find(p => p.id === editingPageId);
+      const page = pages.find(p => p.id === editingPageId || p.page_id === editingPageId);
       if (page) {
         // Глубокое копирование контента для редактирования
         let contentToEdit = page.content ? JSON.parse(JSON.stringify(page.content)) : {};
@@ -648,7 +648,7 @@ export function AdminPanel() {
       {/* Content Editor */}
       <AnimatePresence>
         {editingPageId && (() => {
-          const editingPage = pages.find(p => p.id === editingPageId);
+          const editingPage = pages.find(p => p.id === editingPageId || p.page_id === editingPageId);
           if (!editingPage) return null;
           
           // Используем данные из pageContentForm, которые уже загружены с дефолтными значениями в useEffect

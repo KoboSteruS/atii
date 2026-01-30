@@ -817,7 +817,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateWebsite = (id: string, updates: Partial<Website>) => {
     setWebsites(websites.map(w => w.id === id ? { ...w, ...updates } : w));
     // Update page update time
-    const page = pages.find(p => p.id === 'portfolio');
+    const page = pages.find(p => (p.page_id || p.id) === 'portfolio');
     if (page) {
       updatePage('portfolio', { updated: 'только что' });
     }

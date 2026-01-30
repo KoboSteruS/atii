@@ -35,7 +35,7 @@ const getAboutIcon = (iconName?: string, size: number = 24) => {
 
 export function About() {
   const { pages } = useApp();
-  const aboutPage = pages.find(p => p.id === 'about');
+  const aboutPage = pages.find(p => (p.page_id || p.id) === 'about');
   const content = aboutPage?.content || {};
   const heroContent = content.hero || {};
   
