@@ -172,6 +172,12 @@ export function Home() {
   const solutions = (content.solutions && content.solutions.length > 0) ? content.solutions : defaultSolutions;
   const capabilities = (content.capabilities && content.capabilities.length > 0) ? content.capabilities : defaultCapabilities;
   const stats = (content.stats && content.stats.length > 0) ? content.stats : defaultStats;
+  const sectionTitles = content.sectionTitles || {};
+  const st = (key: string) => sectionTitles[key] || {};
+  const section = (key: string, defTitle: string, defSubtitle: string) => ({
+    title: st(key).title || defTitle,
+    subtitle: st(key).subtitle ?? defSubtitle,
+  });
 
   return (
     <div className="min-h-screen bg-black">
@@ -459,10 +465,20 @@ export function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl mb-6">
-              Почему выбирают <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">АТИИ</span>
+              {(() => {
+                const t = section('features', 'Почему выбирают АТИИ', '').title;
+                const idx = t.lastIndexOf(' ');
+                if (idx === -1) return t;
+                return (
+                  <>
+                    {t.slice(0, idx + 1)}
+                    <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">{t.slice(idx + 1)}</span>
+                  </>
+                );
+              })()}
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Мы предлагаем комплексные решения для автоматизации и оптимизации ваших бизнес-процессов
+              {section('features', 'Почему выбирают АТИИ', 'Мы предлагаем комплексные решения для автоматизации и оптимизации ваших бизнес-процессов').subtitle || 'Мы предлагаем комплексные решения для автоматизации и оптимизации ваших бизнес-процессов'}
             </p>
           </motion.div>
           
@@ -556,10 +572,20 @@ export function Home() {
             className="mb-16"
           >
             <MarkdownHeading level={1} className="mb-6 justify-center">
-              <span>Что мы <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">умеем</span></span>
+              {(() => {
+                const t = section('capabilities', 'Что мы умеем', '').title;
+                const idx = t.lastIndexOf(' ');
+                if (idx === -1) return <span>{t}</span>;
+                return (
+                  <span>
+                    {t.slice(0, idx + 1)}
+                    <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">{t.slice(idx + 1)}</span>
+                  </span>
+                );
+              })()}
             </MarkdownHeading>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto text-center">
-              От простых интеграций до сложных AI-систем — мы реализуем проекты любой сложности
+              {section('capabilities', 'Что мы умеем', 'От простых интеграций до сложных AI-систем — мы реализуем проекты любой сложности').subtitle || 'От простых интеграций до сложных AI-систем — мы реализуем проекты любой сложности'}
             </p>
           </motion.div>
 
@@ -632,7 +658,7 @@ export function Home() {
             className="mb-12"
           >
             <MarkdownHeading level={2} className="mb-6">
-              Наши сервисы
+              {section('services', 'Наши сервисы', '').title}
             </MarkdownHeading>
             <CodeList
               items={[
@@ -720,10 +746,20 @@ export function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl mb-6">
-              Примеры <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">наших работ</span>
+              {(() => {
+                const t = section('projects', 'Примеры наших работ', '').title;
+                const idx = t.lastIndexOf(' ');
+                if (idx === -1) return t;
+                return (
+                  <>
+                    {t.slice(0, idx + 1)}
+                    <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.3)]">{t.slice(idx + 1)}</span>
+                  </>
+                );
+              })()}
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Реализованные проекты для различных отраслей бизнеса
+              {section('projects', 'Примеры наших работ', 'Реализованные проекты для различных отраслей бизнеса').subtitle || 'Реализованные проекты для различных отраслей бизнеса'}
             </p>
           </motion.div>
 

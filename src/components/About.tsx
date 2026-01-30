@@ -60,10 +60,12 @@ export function About() {
     'Microservices', 'CI/CD', 'Machine Learning', 'Blockchain'
   ];
   
-  // Используем данные из Context с fallback на дефолтные
   const stats = (content.stats && content.stats.length > 0) ? content.stats : defaultStats;
   const values = (content.values && content.values.length > 0) ? content.values : defaultValues;
   const technologies = (content.technologies && content.technologies.length > 0) ? content.technologies : defaultTechnologies;
+  const sectionTitles = content.sectionTitles || {};
+  const st = (key: string) => sectionTitles[key] || {};
+  const sectionTitle = (key: string, def: string) => st(key).title || def;
 
   return (
     <div className="min-h-screen py-12 relative overflow-hidden">
@@ -220,7 +222,17 @@ export function About() {
           className="mb-24"
         >
           <h2 className="text-5xl mb-16 text-center">
-            Наши <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">ценности</span>
+            {(() => {
+              const t = sectionTitle('values', 'Наши ценности');
+              const idx = t.lastIndexOf(' ');
+              if (idx === -1) return t;
+              return (
+                <>
+                  {t.slice(0, idx + 1)}
+                  <span className="text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">{t.slice(idx + 1)}</span>
+                </>
+              );
+            })()}
           </h2>
 
           <div className="grid grid-cols-12 gap-6">
@@ -280,7 +292,17 @@ export function About() {
           className="mb-24"
         >
           <h2 className="text-5xl mb-12 text-center">
-            Технологии, с которыми <span className="text-red-500">мы работаем</span>
+            {(() => {
+              const t = sectionTitle('technologies', 'Технологии, с которыми мы работаем');
+              const idx = t.lastIndexOf(' ');
+              if (idx === -1) return t;
+              return (
+                <>
+                  {t.slice(0, idx + 1)}
+                  <span className="text-red-500">{t.slice(idx + 1)}</span>
+                </>
+              );
+            })()}
           </h2>
 
           <div className="flex flex-wrap justify-center gap-4">

@@ -251,6 +251,12 @@ export function AdminPanel() {
               'Microservices', 'CI/CD', 'Machine Learning', 'Blockchain'
             ];
           }
+          if (!contentToEdit.sectionTitles || typeof contentToEdit.sectionTitles !== 'object') {
+            contentToEdit.sectionTitles = {
+              values: { title: 'Наши ценности', subtitle: '' },
+              technologies: { title: 'Технологии, с которыми мы работаем', subtitle: '' },
+            };
+          }
         }
 
         // Убеждаемся что все нужные поля существуют для главной страницы
@@ -299,6 +305,15 @@ export function AdminPanel() {
               { id: '3', value: '5+', label: 'Лет опыта' },
               { id: '4', value: '24/7', label: 'Техподдержка' }
             ];
+          }
+          if (!contentToEdit.sectionTitles || typeof contentToEdit.sectionTitles !== 'object') {
+            contentToEdit.sectionTitles = {
+              features: { title: 'Почему выбирают АТИИ', subtitle: 'Мы предлагаем комплексные решения для автоматизации и оптимизации ваших бизнес-процессов' },
+              capabilities: { title: 'Что мы умеем', subtitle: 'От простых интеграций до сложных AI-систем — мы реализуем проекты любой сложности' },
+              services: { title: 'Наши сервисы', subtitle: '' },
+              projects: { title: 'Примеры наших работ', subtitle: 'Реализованные проекты для различных отраслей бизнеса' },
+              solutions: { title: 'Готовые решения', subtitle: 'Быстрый старт с проверенными шаблонами автоматизации' },
+            };
           }
         }
         
@@ -827,6 +842,53 @@ export function AdminPanel() {
                     )}
                   </div>
                 </div>
+
+                {/* Заголовки секций — только для главной */}
+                {editingPageId === 'home' && (
+                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <h4 className="text-lg mb-4 flex items-center gap-2">
+                      <Type className="text-red-500" size={20} />
+                      Заголовки секций (отображаются над блоками на главной)
+                    </h4>
+                    <div className="space-y-4">
+                      {(['features', 'capabilities', 'services', 'projects', 'solutions'] as const).map((key) => {
+                        const st = (pageContentForm.sectionTitles || {})[key] || {};
+                        const labels: Record<string, string> = {
+                          features: 'Секция «Почему выбирают»',
+                          capabilities: 'Секция «Что мы умеем»',
+                          services: 'Секция «Наши сервисы»',
+                          projects: 'Секция «Примеры работ»',
+                          solutions: 'Секция «Готовые решения»',
+                        };
+                        return (
+                          <div key={key} className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg">
+                            <div className="text-sm text-zinc-500 mb-2">{labels[key]}</div>
+                            <input
+                              type="text"
+                              placeholder="Заголовок"
+                              value={st.title || ''}
+                              onChange={(e) => setPageContentForm({
+                                ...pageContentForm,
+                                sectionTitles: { ...(pageContentForm.sectionTitles || {}), [key]: { ...st, title: e.target.value } },
+                              })}
+                              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm mb-2 focus:border-red-500 focus:outline-none"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Подзаголовок (необязательно)"
+                              value={st.subtitle || ''}
+                              onChange={(e) => setPageContentForm({
+                                ...pageContentForm,
+                                sectionTitles: { ...(pageContentForm.sectionTitles || {}), [key]: { ...st, subtitle: e.target.value } },
+                              })}
+                              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:border-red-500 focus:outline-none"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Features Editor - только для главной */}
                 {editingPageId === 'home' && (
@@ -1478,6 +1540,35 @@ export function AdminPanel() {
                             </button>
                           </div>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Заголовки секций — для About */}
+                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                      <h4 className="text-lg mb-4 flex items-center gap-2">
+                        <Type className="text-red-500" size={20} />
+                        Заголовки секций (О нас)
+                      </h4>
+                      <div className="space-y-4">
+                        {(['values', 'technologies'] as const).map((key) => {
+                          const st = (pageContentForm.sectionTitles || {})[key] || {};
+                          const labels: Record<string, string> = { values: 'Секция «Ценности»', technologies: 'Секция «Технологии»' };
+                          return (
+                            <div key={key} className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg">
+                              <div className="text-sm text-zinc-500 mb-2">{labels[key]}</div>
+                              <input
+                                type="text"
+                                placeholder="Заголовок"
+                                value={st.title || ''}
+                                onChange={(e) => setPageContentForm({
+                                  ...pageContentForm,
+                                  sectionTitles: { ...(pageContentForm.sectionTitles || {}), [key]: { ...st, title: e.target.value } },
+                                })}
+                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:border-red-500 focus:outline-none"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </>

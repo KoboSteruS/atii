@@ -25,7 +25,8 @@ interface FormData {
 export function CustomSolutions() {
   const { pages } = useApp();
   const customPage = pages.find(p => (p.page_id || p.id) === 'custom');
-  const heroContent = customPage?.content?.hero || {};
+  const content = customPage?.content || {};
+  const heroContent = content.hero || {};
   
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -39,111 +40,34 @@ export function CustomSolutions() {
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
-  // Статичные шаги процесса разработки
-  const workflowSteps = [
-    {
-      id: 1,
-      title: 'Анализ требований',
-      description: 'Изучаем ваши бизнес-процессы, техническое задание и цели проекта',
-      duration: '3-5 дней',
-      icon: 'target',
-      details: ['Интервью с заказчиком', 'Анализ конкурентов', 'Техническое задание']
-    },
-    {
-      id: 2,
-      title: 'Проектирование архитектуры',
-      description: 'Создаём техническую документацию, проектируем структуру и API',
-      duration: '5-7 дней',
-      icon: 'layers',
-      details: ['Диаграммы архитектуры', 'API спецификация', 'Схема БД']
-    },
-    {
-      id: 3,
-      title: 'Разработка MVP',
-      description: 'Быстрая реализация базового функционала для валидации концепции',
-      duration: '2-4 недели',
-      icon: 'code',
-      details: ['Основной функционал', 'Тестирование', 'Демо версия']
-    },
-    {
-      id: 4,
-      title: 'Доработка и масштабирование',
-      description: 'Добавляем расширенный функционал, оптимизируем производительность',
-      duration: '2-6 недель',
-      icon: 'rocket',
-      details: ['Расширенные функции', 'Оптимизация', 'Интеграции']
-    },
-    {
-      id: 5,
-      title: 'Тестирование и запуск',
-      description: 'Комплексное тестирование, деплой на production и мониторинг',
-      duration: '1-2 недели',
-      icon: 'check',
-      details: ['QA тестирование', 'Деплой', 'Обучение команды']
-    }
+  // Шаги процесса из админки или дефолт
+  const defaultWorkflowSteps = [
+    { id: '1', title: 'Анализ требований', description: 'Изучаем ваши бизнес-процессы, техническое задание и цели проекта', duration: '3-5 дней', icon: 'target', details: ['Интервью с заказчиком', 'Анализ конкурентов', 'Техническое задание'] },
+    { id: '2', title: 'Проектирование архитектуры', description: 'Создаём техническую документацию, проектируем структуру и API', duration: '5-7 дней', icon: 'layers', details: ['Диаграммы архитектуры', 'API спецификация', 'Схема БД'] },
+    { id: '3', title: 'Разработка MVP', description: 'Быстрая реализация базового функционала для валидации концепции', duration: '2-4 недели', icon: 'code', details: ['Основной функционал', 'Тестирование', 'Демо версия'] },
+    { id: '4', title: 'Доработка и масштабирование', description: 'Добавляем расширенный функционал, оптимизируем производительность', duration: '2-6 недель', icon: 'rocket', details: ['Расширенные функции', 'Оптимизация', 'Интеграции'] },
+    { id: '5', title: 'Тестирование и запуск', description: 'Комплексное тестирование, деплой на production и мониторинг', duration: '1-2 недели', icon: 'check', details: ['QA тестирование', 'Деплой', 'Обучение команды'] },
   ];
+  const workflowSteps = (content.workflowSteps && content.workflowSteps.length > 0) ? content.workflowSteps : defaultWorkflowSteps;
 
-  // Преимущества работы с нами
-  const advantages = [
-    {
-      id: 1,
-      title: 'Опыт 10+ лет',
-      description: 'Реализовали более 200 успешных проектов для бизнеса любого масштаба',
-      icon: 'rocket'
-    },
-    {
-      id: 2,
-      title: 'Современный стек',
-      description: 'Используем только проверенные технологии и лучшие практики разработки',
-      icon: 'code'
-    },
-    {
-      id: 3,
-      title: 'Прозрачность',
-      description: 'Регулярные отчёты о прогрессе, доступ к репозиторию, код-ревью',
-      icon: 'globe'
-    },
-    {
-      id: 4,
-      title: 'Быстрый старт',
-      description: 'MVP за 2-4 недели, итеративная разработка с обратной связью',
-      icon: 'zap'
-    },
-    {
-      id: 5,
-      title: 'Поддержка 24/7',
-      description: 'Техническая поддержка, мониторинг и обновления после запуска',
-      icon: 'shield'
-    },
-    {
-      id: 6,
-      title: 'Масштабируемость',
-      description: 'Архитектура готова к росту нагрузки и добавлению новых функций',
-      icon: 'chart'
-    }
+  // Преимущества из админки или дефолт
+  const defaultAdvantages = [
+    { id: '1', title: 'Опыт 10+ лет', description: 'Реализовали более 200 успешных проектов для бизнеса любого масштаба', icon: 'rocket' },
+    { id: '2', title: 'Современный стек', description: 'Используем только проверенные технологии и лучшие практики разработки', icon: 'code' },
+    { id: '3', title: 'Прозрачность', description: 'Регулярные отчёты о прогрессе, доступ к репозиторию, код-ревью', icon: 'globe' },
+    { id: '4', title: 'Быстрый старт', description: 'MVP за 2-4 недели, итеративная разработка с обратной связью', icon: 'zap' },
+    { id: '5', title: 'Поддержка 24/7', description: 'Техническая поддержка, мониторинг и обновления после запуска', icon: 'shield' },
+    { id: '6', title: 'Масштабируемость', description: 'Архитектура готова к росту нагрузки и добавлению новых функций', icon: 'chart' },
   ];
+  const advantages = (content.advantages && content.advantages.length > 0) ? content.advantages : defaultAdvantages;
 
-  // Примеры реализованных проектов
-  const caseStudies = [
-    {
-      id: 1,
-      title: 'CRM для ритейла',
-      description: 'Система управления клиентами с автоматизацией продаж и аналитикой',
-      tech: ['React', 'Node.js', 'PostgreSQL', 'Redis']
-    },
-    {
-      id: 2,
-      title: 'Платформа для обучения',
-      description: 'Онлайн-школа с видеокурсами, тестами и системой прогресса',
-      tech: ['Next.js', 'TypeScript', 'MongoDB', 'AWS']
-    },
-    {
-      id: 3,
-      title: 'Маркетплейс B2B',
-      description: 'Торговая площадка для оптовых закупок с интеграцией платежей',
-      tech: ['Vue.js', 'Django', 'Stripe', 'Docker']
-    }
+  // Кейсы из админки или дефолт
+  const defaultCaseStudies = [
+    { id: '1', title: 'CRM для ритейла', description: 'Система управления клиентами с автоматизацией продаж и аналитикой', tech: ['React', 'Node.js', 'PostgreSQL', 'Redis'] },
+    { id: '2', title: 'Платформа для обучения', description: 'Онлайн-школа с видеокурсами, тестами и системой прогресса', tech: ['Next.js', 'TypeScript', 'MongoDB', 'AWS'] },
+    { id: '3', title: 'Маркетплейс B2B', description: 'Торговая площадка для оптовых закупок с интеграцией платежей', tech: ['Vue.js', 'Django', 'Stripe', 'Docker'] },
   ];
+  const caseStudies = (content.caseStudies && content.caseStudies.length > 0) ? content.caseStudies : defaultCaseStudies;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

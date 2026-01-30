@@ -141,6 +141,8 @@ export interface PageContent {
       tech: string[];
     }>;
     sections?: ContentSection[];
+    /** Заголовки и подзаголовки секций (Главная, О нас и т.д.) — редактируются в админке */
+    sectionTitles?: Record<string, { title?: string; subtitle?: string }>;
   };
 }
 
