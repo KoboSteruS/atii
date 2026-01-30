@@ -132,6 +132,7 @@ export function AdminPanel() {
     if (editingPageId) {
       const page = pages.find(p => p.id === editingPageId || p.page_id === editingPageId);
       if (page) {
+        const slug = page.page_id || page.id; // slug для условий: с API приходит page_id, с мока id
         // Глубокое копирование контента для редактирования
         let contentToEdit = page.content ? JSON.parse(JSON.stringify(page.content)) : {};
         
@@ -176,13 +177,13 @@ export function AdminPanel() {
             ]
           };
           
-          if (editingPageId === 'home') {
+          if (slug === 'home') {
             contentToEdit = { ...defaultHomeContent, ...contentToEdit };
           }
         }
         
         // Загружаем дефолтные данные для Custom
-        if (editingPageId === 'custom') {
+        if (slug === 'custom') {
           if (!contentToEdit.hero) contentToEdit.hero = {};
           // Заполняем дефолтными значениями если пусто
           if (!contentToEdit.hero.badge) contentToEdit.hero.badge = 'Премиум услуга';
@@ -218,7 +219,7 @@ export function AdminPanel() {
         }
 
         // Загружаем дефолтные данные для About
-        if (editingPageId === 'about') {
+        if (slug === 'about') {
           if (!contentToEdit) contentToEdit = {};
           if (!contentToEdit.hero) contentToEdit.hero = {};
           // Заполняем дефолтными значениями если пусто
@@ -260,7 +261,7 @@ export function AdminPanel() {
         }
 
         // Убеждаемся что все нужные поля существуют для главной страницы
-        if (editingPageId === 'home') {
+        if (slug === 'home') {
           if (!contentToEdit.hero) contentToEdit.hero = {};
           // Заполняем дефолтными значениями если пусто
           if (!contentToEdit.hero.badge) contentToEdit.hero.badge = 'Информационные технологии будущего';
@@ -665,8 +666,7 @@ export function AdminPanel() {
         {editingPageId && (() => {
           const editingPage = pages.find(p => p.id === editingPageId || p.page_id === editingPageId);
           if (!editingPage) return null;
-          
-          // Используем данные из pageContentForm, которые уже загружены с дефолтными значениями в useEffect
+          const slug = editingPage.page_id || editingPage.id; // с API приходит page_id, с мока id — по slug показываем блоки
           const hero = pageContentForm.hero || {};
           
           return (
@@ -676,14 +676,72 @@ export function AdminPanel() {
               exit={{ opacity: 0, y: -20 }}
               className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl"
             >
-        <h3 className="text-xl mb-6 flex items-center gap-2">
+        <h3 className="text-xl mb-4 flex items-center gap-2">
           <Code className="text-red-500" size={24} />
                 Редактор контента: {editingPage.name}
         </h3>
 
+              {/* Навигация по блокам — сразу видно, что можно редактировать */}
+              <div className="sticky top-0 z-10 mb-6 py-3 px-4 bg-zinc-900/95 border border-zinc-700 rounded-xl flex flex-wrap gap-2 backdrop-blur-sm">
+                <span className="text-zinc-500 text-sm self-center mr-2">Блоки:</span>
+                <button type="button" onClick={() => document.getElementById('content-block-hero')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                  Hero
+                </button>
+                {(slug === 'home' || slug === 'about') && (
+                  <button type="button" onClick={() => document.getElementById('content-block-section-titles')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                    Заголовки секций
+                  </button>
+                )}
+                {slug === 'home' && (
+                  <>
+                    <button type="button" onClick={() => document.getElementById('content-block-features')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Особенности
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-stats')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Статистика
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-projects')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Проекты
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-solutions')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Решения
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-capabilities')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Возможности
+                    </button>
+                  </>
+                )}
+                {slug === 'about' && (
+                  <>
+                    <button type="button" onClick={() => document.getElementById('content-block-stats')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Статистика
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-values')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Ценности
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-technologies')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Технологии
+                    </button>
+                  </>
+                )}
+                {slug === 'custom' && (
+                  <>
+                    <button type="button" onClick={() => document.getElementById('content-block-workflow')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Шаги процесса
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-advantages')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Преимущества
+                    </button>
+                    <button type="button" onClick={() => document.getElementById('content-block-case-studies')?.scrollIntoView({ behavior: 'smooth' })} className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-red-500/50 text-sm transition-colors">
+                      Кейсы
+                    </button>
+                  </>
+                )}
+              </div>
+
               <div className="space-y-6">
                 {/* Hero Section Editor */}
-                <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                <div id="content-block-hero" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                   <h4 className="text-lg mb-4 flex items-center gap-2">
                     <Sparkles className="text-red-500" size={20} />
                     Hero секция (главный блок страницы)
@@ -844,8 +902,8 @@ export function AdminPanel() {
                 </div>
 
                 {/* Заголовки секций — только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-section-titles" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <h4 className="text-lg mb-4 flex items-center gap-2">
                       <Type className="text-red-500" size={20} />
                       Заголовки секций (отображаются над блоками на главной)
@@ -891,8 +949,8 @@ export function AdminPanel() {
                 )}
 
                 {/* Features Editor - только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-features" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg flex items-center gap-2">
                         <Zap className="text-red-500" size={20} />
@@ -982,8 +1040,8 @@ export function AdminPanel() {
                 )}
 
                 {/* Stats Editor - только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-stats" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg flex items-center gap-2">
                         <BarChart className="text-red-500" size={20} />
@@ -1047,8 +1105,8 @@ export function AdminPanel() {
                 )}
 
                 {/* Projects Editor - только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-projects" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg flex items-center gap-2">
                         <Briefcase className="text-red-500" size={20} />
@@ -1150,8 +1208,8 @@ export function AdminPanel() {
                 )}
 
                 {/* Solutions Editor - только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-solutions" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg flex items-center gap-2">
                         <MessageSquare className="text-red-500" size={20} />
@@ -1241,8 +1299,8 @@ export function AdminPanel() {
                 )}
 
                 {/* Capabilities Editor - только для главной */}
-                {editingPageId === 'home' && (
-                  <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {slug === 'home' && (
+                  <div id="content-block-capabilities" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg flex items-center gap-2">
                         <Layers className="text-red-500" size={20} />
@@ -1332,10 +1390,10 @@ export function AdminPanel() {
                 )}
 
                 {/* Stats, Values, Technologies Editors - для About */}
-                {editingPageId === 'about' && (
+                {slug === 'about' && (
                   <>
                     {/* Stats Editor для About */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-stats" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <BarChart className="text-red-500" size={20} />
@@ -1410,7 +1468,7 @@ export function AdminPanel() {
                     </div>
 
                     {/* Values Editor для About */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-values" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <Award className="text-red-500" size={20} />
@@ -1499,7 +1557,7 @@ export function AdminPanel() {
                     </div>
 
                     {/* Technologies Editor для About */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-technologies" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <Code className="text-red-500" size={20} />
@@ -1544,7 +1602,7 @@ export function AdminPanel() {
                     </div>
 
                     {/* Заголовки секций — для About */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-section-titles" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <h4 className="text-lg mb-4 flex items-center gap-2">
                         <Type className="text-red-500" size={20} />
                         Заголовки секций (О нас)
@@ -1575,10 +1633,10 @@ export function AdminPanel() {
                 )}
 
                 {/* WorkflowSteps, Advantages, CaseStudies Editors - для Custom */}
-                {editingPageId === 'custom' && (
+                {slug === 'custom' && (
                   <>
                     {/* Workflow Steps Editor для Custom */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-workflow" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <GitBranch className="text-red-500" size={20} />
@@ -1682,7 +1740,7 @@ export function AdminPanel() {
                     </div>
 
                     {/* Advantages Editor для Custom */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-advantages" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <Check className="text-red-500" size={20} />
@@ -1759,7 +1817,7 @@ export function AdminPanel() {
                     </div>
 
                     {/* Case Studies Editor для Custom */}
-                    <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                    <div id="content-block-case-studies" className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg scroll-mt-24">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg flex items-center gap-2">
                           <Briefcase className="text-red-500" size={20} />
