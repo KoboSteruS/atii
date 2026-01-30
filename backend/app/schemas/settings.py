@@ -1,8 +1,10 @@
 """
 Схемы для настроек сайта
 """
-from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class SettingsCreate(BaseModel):
@@ -43,8 +45,7 @@ class SettingsResponse(BaseModel):
     meta_title: Optional[str]
     meta_description: Optional[str]
     keywords: Optional[str]
-    created_at: str
-    updated_at: str
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

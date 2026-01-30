@@ -1,8 +1,10 @@
 """
 Схемы для шаблонов и workflow шагов
 """
+from datetime import datetime
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
-from typing import Optional, List
 
 
 class WorkflowStepCreate(BaseModel):
@@ -21,11 +23,10 @@ class WorkflowStepResponse(BaseModel):
     type: str
     description: Optional[str]
     position: str
-    created_at: str
-    updated_at: str
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class TemplateCreate(BaseModel):
@@ -54,8 +55,7 @@ class TemplateResponse(BaseModel):
     customizable: List[str]
     status: str
     workflow_steps: List[WorkflowStepResponse]
-    created_at: str
-    updated_at: str
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

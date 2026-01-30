@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useParams, Navigate } from 'react-router';
 import { Menu, X } from 'lucide-react';
-import { AppProvider } from './store/AppContext';
+import { apiClient } from './api/client';
+import { AppProviderWithAPI } from './store/AppContextWithAPI';
 import { Home } from './components/Home';
 import { Templates } from './components/Templates';
 import { CustomSolutions } from './components/CustomSolutions';
@@ -11,21 +12,26 @@ import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
 import logo from './assets/fae284cb14d195ca8a500c6871ab1edb884752c1.png';
 
-// Компонент для проверки JWT токена
+// Компонент для проверки JWT токена и входа в админку
 function AdminRoute() {
   const { token } = useParams<{ token: string }>();
-  
-  // Простая проверка формата JWT (три части через точку)
+
   const isValidJWT = (t: string | undefined): boolean => {
     if (!t) return false;
     const parts = t.split('.');
     return parts.length === 3 && parts.every(part => part.length > 0);
   };
-  
+
+  useEffect(() => {
+    if (token && isValidJWT(token)) {
+      apiClient.setToken(token);
+    }
+  }, [token]);
+
   if (!isValidJWT(token)) {
     return <Navigate to="/" replace />;
   }
-  
+
   return <AdminPanel />;
 }
 
@@ -43,22 +49,20 @@ function Navigation() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 450);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Закрываем мобильное меню при смене роута (всегда вызываем хук, порядок важен)
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // Hide navigation on admin page (проверяем паттерн /token/admin)
   if (location.pathname.match(/^\/[^/]+\/admin$/)) {
     return null;
   }
-
-  // Закрываем мобильное меню при смене роута
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -175,10 +179,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-    <Router>
-      <AppContent />
-    </Router>
-    </AppProvider>
+    <AppProviderWithAPI>
+      <Router>
+        <AppContent />
+      </Router>
+    </AppProviderWithAPI>
   );
 }

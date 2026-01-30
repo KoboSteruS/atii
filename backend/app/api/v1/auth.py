@@ -9,6 +9,7 @@ from loguru import logger
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.config import settings
+from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, Token, LoginRequest
 

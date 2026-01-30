@@ -8,9 +8,10 @@ import {
   Briefcase, ExternalLink, Calendar, Tag, Sparkles, AlertCircle, Award
 } from 'lucide-react';
 import { useApp, Website, Template, PageContent, WorkflowStep } from '../store/AppContext';
+import { syncLocalStorageToApi, seedDemoDataToApi, type SyncResult } from '../api/syncLocalToApi';
 import { SchemaEditor } from './SchemaEditor';
 
-type Section = 'dashboard' | 'schemas' | 'content' | 'templates' | 'portfolio' | 'settings';
+type Section = 'dashboard' | 'schemas' | 'content' | 'templates' | 'portfolio' | 'settings' | 'import';
 
 export function AdminPanel() {
   const {
@@ -117,6 +118,10 @@ export function AdminPanel() {
   // Content editor state
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [pageContentForm, setPageContentForm] = useState<any>({});
+
+  // Импорт в БД из LocalStorage
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+  const [syncLoading, setSyncLoading] = useState(false);
   
   // Схемы теперь хранятся прямо в шаблонах - не нужен отдельный state! // УБРАЛ templates из зависимостей!
 
@@ -2389,6 +2394,110 @@ export function AdminPanel() {
     </div>
   );
 
+  const saveCurrentDataToLocalStorage = () => {
+    localStorage.setItem('atii_websites', JSON.stringify(websites));
+    localStorage.setItem('atii_templates', JSON.stringify(templates));
+    localStorage.setItem('atii_pages', JSON.stringify(pages));
+    if (settings) localStorage.setItem('atii_settings', JSON.stringify(settings));
+    localStorage.setItem('atii_workflow_schemas', JSON.stringify(workflowSchemas));
+    setSyncResult(null);
+    alert('Текущие данные сохранены в LocalStorage.');
+  };
+
+  const handleSyncLocalStorageToApi = async () => {
+    setSyncLoading(true);
+    setSyncResult(null);
+    try {
+      const result = await syncLocalStorageToApi();
+      setSyncResult(result);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleSeedDemoToApi = async () => {
+    setSyncLoading(true);
+    setSyncResult(null);
+    try {
+      const result = await seedDemoDataToApi();
+      setSyncResult(result);
+      if (result.ok) {
+        window.location.reload();
+      }
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const renderImport = () => (
+    <div className="space-y-6">
+      <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+        <h3 className="text-xl mb-4 flex items-center gap-2">
+          <Upload className="text-red-500" size={24} />
+          Загрузить данные в БД из LocalStorage
+        </h3>
+        <p className="text-zinc-400 mb-6">
+          Если в БД пусто — нажмите «Загрузить демо-данные в БД»: в базу попадёт контент по умолчанию (портфолио, шаблоны, страницы). Либо сохраните текущие данные в LocalStorage и отправьте их кнопкой ниже.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSeedDemoToApi}
+            disabled={syncLoading}
+            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:shadow-lg hover:shadow-green-500/30 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {syncLoading ? (
+              <>Загрузка...</>
+            ) : (
+              <>
+                <Sparkles size={18} />
+                Загрузить демо-данные в БД
+              </>
+            )}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={saveCurrentDataToLocalStorage}
+            className="px-6 py-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:border-zinc-600 transition-all flex items-center gap-2"
+          >
+            <Database size={18} />
+            Сохранить текущие данные в LocalStorage
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSyncLocalStorageToApi}
+            disabled={syncLoading}
+            className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg hover:shadow-lg hover:shadow-red-500/30 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {syncLoading ? (
+              <>Загрузка...</>
+            ) : (
+              <>
+                <Upload size={18} />
+                Загрузить в БД из LocalStorage
+              </>
+            )}
+          </motion.button>
+        </div>
+      </div>
+      {syncResult && (
+        <div className={`p-6 rounded-xl border ${syncResult.ok ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'}`}>
+          <p className="font-medium text-white mb-2">{syncResult.ok ? 'Готово' : 'Ошибка'}</p>
+          <p className="text-zinc-300 text-sm mb-4">{syncResult.message}</p>
+          <details className="text-sm text-zinc-400">
+            <summary>Детали</summary>
+            <pre className="mt-2 p-4 bg-black/30 rounded overflow-auto max-h-48">
+              {JSON.stringify(syncResult.details, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Cyberpunk Background */}
@@ -2436,6 +2545,7 @@ export function AdminPanel() {
               { id: 'templates', icon: Layers, label: 'Шаблоны' },
               { id: 'portfolio', icon: Briefcase, label: 'Портфолио' },
               { id: 'settings', icon: Settings, label: 'Настройки' },
+              { id: 'import', icon: Upload, label: 'Импорт в БД' },
             ].map((item) => (
               <motion.button
                 key={item.id}
@@ -2482,6 +2592,7 @@ export function AdminPanel() {
                   {activeSection === 'templates' && 'Шаблоны решений'}
                   {activeSection === 'portfolio' && 'Портфолио проектов'}
                   {activeSection === 'settings' && 'Настройки'}
+                  {activeSection === 'import' && 'Импорт в БД'}
                 </h1>
                 <p className="text-zinc-500">
                   {new Date().toLocaleDateString('ru-RU', { 
@@ -2542,6 +2653,7 @@ export function AdminPanel() {
                 {activeSection === 'templates' && renderTemplates()}
                 {activeSection === 'portfolio' && renderPortfolio()}
                 {activeSection === 'settings' && renderSettings()}
+                {activeSection === 'import' && renderImport()}
               </motion.div>
             </AnimatePresence>
           </div>

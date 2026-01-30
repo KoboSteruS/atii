@@ -1,8 +1,10 @@
 """
 Схемы для workflow схем (визуальный редактор)
 """
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
 
 
 class WorkflowSchemaCreate(BaseModel):
@@ -22,8 +24,7 @@ class WorkflowSchemaResponse(BaseModel):
     id: str
     template_id: str
     nodes: List[Dict[str, Any]]
-    created_at: str
-    updated_at: str
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

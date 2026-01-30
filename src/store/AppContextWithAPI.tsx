@@ -123,15 +123,15 @@ export function AppProviderWithAPI({ children }: { children: ReactNode }) {
         }
         setLoading(prev => ({ ...prev, settings: false }));
 
-        // Загружаем workflow схемы для всех шаблонов
+        // Загружаем workflow схемы для всех шаблонов (404 = схемы ещё нет, подставляем [])
         if (templatesData.status === 'fulfilled') {
           const schemas: Record<string, WorkflowNode[]> = {};
           const schemaPromises = templatesData.value.map(async (template: any) => {
             try {
               const schema = await apiClient.getWorkflowSchemaByTemplate(template.id);
               schemas[template.id] = schema.nodes || [];
-            } catch (error) {
-              console.error(`Ошибка загрузки схемы для шаблона ${template.id}:`, error);
+            } catch {
+              schemas[template.id] = [];
             }
           });
           await Promise.all(schemaPromises);

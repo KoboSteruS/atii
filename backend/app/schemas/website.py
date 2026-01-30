@@ -1,8 +1,10 @@
 """
 Схемы для веб-сайтов (портфолио)
 """
+from datetime import datetime
+from typing import List, Optional
+
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, List
 
 
 class WebsiteCreate(BaseModel):
@@ -43,8 +45,7 @@ class WebsiteResponse(BaseModel):
     category: Optional[str]
     date: Optional[str]
     featured: bool
-    created_at: str
-    updated_at: str
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -183,7 +183,7 @@ interface AppContextType {
   updateSettings: (settings: Partial<Settings>) => void;
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Default data
 const defaultWebsites: Website[] = [
@@ -923,3 +923,5 @@ export function useApp() {
   }
   return context;
 }
+
+export { defaultWebsites, defaultTemplates, defaultPages, defaultSettings };
