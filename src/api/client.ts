@@ -73,6 +73,12 @@ class ApiClient {
         const error: ApiError = await response.json().catch(() => ({
           detail: `HTTP ${response.status}: ${response.statusText}`,
         }));
+        if (response.status === 401) {
+          this.setToken(null);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('atii:auth:401', { detail: error.detail }));
+          }
+        }
         throw new Error(error.detail || 'Ошибка запроса');
       }
 

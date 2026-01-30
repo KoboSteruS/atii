@@ -122,6 +122,14 @@ export function AdminPanel() {
   // Импорт в БД из LocalStorage
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [syncLoading, setSyncLoading] = useState(false);
+
+  // Баннер «Сессия истекла» при 401
+  const [tokenExpiredBanner, setTokenExpiredBanner] = useState(false);
+  useEffect(() => {
+    const on401 = () => setTokenExpiredBanner(true);
+    window.addEventListener('atii:auth:401', on401);
+    return () => window.removeEventListener('atii:auth:401', on401);
+  }, []);
   
   // Схемы теперь хранятся прямо в шаблонах - не нужен отдельный state! // УБРАЛ templates из зависимостей!
 
@@ -2649,6 +2657,31 @@ export function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Баннер «Сессия истекла» при 401 */}
+      <AnimatePresence>
+        {tokenExpiredBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="sticky top-0 z-50 flex items-center justify-between gap-4 px-6 py-4 bg-amber-500/20 border-b border-amber-500/50 text-amber-200"
+          >
+            <span className="flex items-center gap-2">
+              <AlertCircle size={20} className="text-amber-400" />
+              Сессия истекла (невалидный токен). Войдите снова и откройте админку по ссылке с новым токеном.
+            </span>
+            <button
+              type="button"
+              onClick={() => setTokenExpiredBanner(false)}
+              className="p-2 rounded-lg hover:bg-amber-500/20 transition-colors"
+              aria-label="Закрыть"
+            >
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Cyberpunk Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-red-950/10 via-black to-purple-950/10" />

@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     # JWT настройки
     SECRET_KEY: str = "your-secret-key-change-in-production-use-env-variable"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Время жизни access token в минутах. 10080 = 7 дней. Задаётся через .env
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
     
     # CORS (localhost и 127.0.0.1 — разные origin для браузера)
     CORS_ORIGINS: list[str] = [
